@@ -6,12 +6,8 @@ const connectDB = async () => {
   try {
     // My connection options for better production performance
     const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000, // 30 seconds timeout
       socketTimeoutMS: 45000, // 45 seconds socket timeout
-      bufferMaxEntries: 0, // Disable mongoose buffering
-      bufferCommands: false, // Disable mongoose buffering for commands
       maxPoolSize: 10, // Maximum number of connections
       minPoolSize: 2, // Minimum number of connections
     };
