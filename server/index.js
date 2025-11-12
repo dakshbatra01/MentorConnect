@@ -11,8 +11,35 @@ const PORT = process.env.PORT || 4000
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-mentorconnect'
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'dev-refresh-secret-mentorconnect'
 
-const ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173'
-app.use(cors({ origin: ORIGIN, credentials: true }))
+// Configure CORS to allow multiple origins
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'https://mentor-connect-azure.vercel.app']
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      // In development, allow localhost on any port
+      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type']
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // I register cookie parser before routes that read cookies
