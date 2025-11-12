@@ -10,6 +10,7 @@ const connectDB = async () => {
       socketTimeoutMS: 45000, // 45 seconds socket timeout
       maxPoolSize: 10, // Maximum number of connections
       minPoolSize: 2, // Minimum number of connections
+      autoIndex: false, // Disable automatic index creation in production
     };
 
     await mongoose.connect(process.env.MONGODB_URI, options);
