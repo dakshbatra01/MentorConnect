@@ -17,7 +17,9 @@ export const AuthProvider = ({ children }) => {
   const [refreshToken, setRefreshToken] = useState(null);
   const [initialized, setInitialized] = useState(false);
 
-  const API_BASE_URL = 'http://localhost:4000/api/auth';
+  const API_BASE_URL = import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/api/auth` 
+    : 'http://localhost:4000/api/auth';
 
   // My auto refresh token system when access token expires
   const refreshAccessToken = async () => {
