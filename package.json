@@ -1,0 +1,24 @@
+{
+  "name": "mentorconnect-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-router-dom": "*"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.16",
+    "@vitejs/plugin-react": "*",
+    "autoprefixer": "*",
+    "postcss": "*",
+    "tailwindcss": "*",
+    "vite": "*"
+  }
+}
