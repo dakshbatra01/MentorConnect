@@ -25,8 +25,12 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
+      // Allow all Vercel preview deployments (*.vercel.app)
+      if (origin.endsWith('.vercel.app')) {
+        callback(null, true)
+      }
       // In development, allow localhost on any port
-      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+      else if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
         callback(null, true)
       } else {
         callback(new Error('Not allowed by CORS'))
