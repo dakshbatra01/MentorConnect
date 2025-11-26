@@ -1,300 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
+import React from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  
-  // I update the current time every second for live display
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, []);
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:h-16">
-            {/* My responsive navbar layout - Logo and title on top */}
-            <div className="flex items-center justify-between h-16 sm:h-auto">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="text-xl sm:text-2xl">🎯</div>
-                <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
-                  <span className="hidden sm:inline">MentorConnect Dashboard</span>
-                  <span className="sm:hidden">MentorConnect</span>
-                </h1>
-              </div>
-              
-              {/* My mobile logout button for better UX */}
-              <button
-                onClick={logout}
-                className="sm:hidden bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-
-            {/* My user info and desktop controls */}
-            <div className="flex items-center justify-between pb-3 sm:pb-0 sm:space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="hidden sm:flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-600">Connected</span>
-                </div>
-                
-                <div className="text-left sm:text-right">
-                  <div className="text-sm text-gray-700">
-                    Welcome, <span className="font-medium">{user?.name}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    <span className="sm:hidden">
-                      {currentTime.toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </span>
-                    <span className="hidden sm:inline">
-                      {currentTime.toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 capitalize">
-                  {user?.role === 'student' && 'Learner'}
-                  {user?.role === 'mentor' && 'Mentor'}
-                  {user?.role === 'admin' && 'Admin'}
-                </span>
-                
-                {/* My desktop logout button */}
-                <button
-                  onClick={logout}
-                  className="hidden sm:block bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
+    <div className="relative flex min-h-screen w-full bg-background-dark">
+      {/* SideNavBar */}
+      <aside className="flex flex-col w-64 p-4 bg-background-dark border-r border-white/10 fixed h-full z-20">
+        <div className="flex items-center gap-2.5 text-white mb-8 px-2">
+          <div className="size-8 text-primary flex items-center justify-center">
+            <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z"></path>
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold tracking-tight">MentorConnect</h2>
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+            <div
+              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhjURBa14oRHrjnc60wSKWO909MMJ19CcB3NsgK23AZMbwILX7Lhc2rcz0D5g3ppKKO5yt5HNBv0zvJhQl6OFrh64jJsfR_TpdBDe4TJvYIAL5oPc908la57Swwzmz3v43dcYBkdJc8skFiXSKPEysVHcyEdDI2kApCLVzLo_P8CVCehvM132Gn3RWI51xlW0Slz54O9UwWCeGEpv4Xtikz14AOdMqo2CllepmVhPd1Fm0FdNOuL0O4Xn8bKuvJWxNxVZ2Bao04jdZ')" }}
+            ></div>
+            <div className="flex flex-col">
+              <h1 className="text-white text-base font-medium leading-normal">{user?.name || 'Alex Chen'}</h1>
+              <p className="text-white/60 text-sm font-normal leading-normal">{user?.role === 'mentor' ? 'Mentor' : 'Student'}</p>
             </div>
           </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* My Welcome Section with personalized message */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg shadow-lg p-6 mb-6 text-white">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Welcome to MentorConnect, {user?.name}! 🎯</h2>
-            <p className="text-indigo-100">
-              {user?.role === 'student' && 'Connect with mentors and accelerate your learning journey.'}
-              {user?.role === 'mentor' && 'Share your knowledge and guide the next generation.'}
-              {user?.role === 'admin' && 'Manage the platform and foster meaningful connections.'}
-            </p>
-          </div>
-        </div>
-
-        {/* My Profile Information Display */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">👤 Profile Information</h2>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              • Verified Member
-            </span>
-          </div>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">Full Name</dt>
-              <dd className="mt-1 text-lg font-semibold text-gray-900">{user?.name}</dd>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">Email Address</dt>
-              <dd className="mt-1 text-lg font-semibold text-gray-900">{user?.email}</dd>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">Role</dt>
-              <dd className="mt-1 text-lg font-semibold text-gray-900 capitalize flex items-center">
-                {user?.role === 'admin' && 'Platform Admin'}
-                {user?.role === 'mentor' && 'Mentor'}
-                {user?.role === 'student' && 'Learner'}
-              </dd>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">User ID</dt>
-              <dd className="mt-1 text-sm font-mono text-gray-900 break-all">{user?._id}</dd>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">Account Created</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }) : 'N/A'}
-              </dd>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }) : 'N/A'}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-
-
-        {/* My Quick Actions Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">🚀 Quick Actions</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {user?.role === 'student' && (
-              <>
-                <button className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">�</span>
-                  Find Mentors
-                </button>
-                <button className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">💬</span>
-                  My Sessions
-                </button>
-                <button className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">📚</span>
-                  Learning Path
-                </button>
-              </>
-            )}
-            
-            {user?.role === 'mentor' && (
-              <>
-                <button className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">👥</span>
-                  My Students
-                </button>
-                <button className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">📅</span>
-                  Schedule Session
-                </button>
-                <button className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">📊</span>
-                  Analytics
-                </button>
-              </>
-            )}
-            
-            {user?.role === 'admin' && (
-              <>
-                <button className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">👥</span>
-                  Manage Users
-                </button>
-                <button className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">📈</span>
-                  Platform Stats
-                </button>
-                <button className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors">
-                  <span className="mr-2">⚙️</span>
-                  Settings
-                </button>
-              </>
-            )}
-            
-            <button 
-              onClick={logout}
-              className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors"
+          <nav className="flex flex-col gap-2 mt-4">
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
             >
-              <span className="mr-2">🚪</span>
-              Sign Out
+              <span className="material-symbols-outlined">dashboard</span>
+              <p className="text-sm font-medium leading-normal">Dashboard</p>
+            </NavLink>
+            <NavLink
+              to="/mentors"
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+              <span className="material-symbols-outlined">group</span>
+              <p className="text-sm font-medium leading-normal">Mentors</p>
+            </NavLink>
+            <NavLink
+              to="/sessions"
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+              <span className="material-symbols-outlined">event_upcoming</span>
+              <p className="text-sm font-medium leading-normal">Sessions</p>
+            </NavLink>
+            <NavLink
+              to="/messages"
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+              <span className="material-symbols-outlined">chat_bubble</span>
+              <p className="text-sm font-medium leading-normal">Messages</p>
+            </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+              <span className="material-symbols-outlined">person</span>
+              <p className="text-sm font-medium leading-normal">Profile</p>
+            </NavLink>
+          </nav>
+        </div>
+        <div className="mt-auto space-y-2">
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-background-dark text-sm font-bold leading-normal tracking-[0.015em] transition-all"
+          >
+            <span className="truncate">Edit Profile</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm font-medium leading-normal tracking-[0.015em] transition-all"
+          >
+            <span className="material-symbols-outlined text-base mr-2">logout</span>
+            <span className="truncate">Logout</span>
+          </button>
+        </div>
+      </aside>
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        {/* TopNavBar */}
+        <header className="flex items-center justify-between sticky top-0 z-10 bg-background-dark/80 backdrop-blur-sm whitespace-nowrap border-b border-white/10 px-10 py-3">
+          <div className="flex items-center gap-8">
+            <label className="flex flex-col min-w-80 !h-10">
+              <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
+                <div className="text-white/60 flex bg-white/5 items-center justify-center pl-4 rounded-l-lg border border-r-0 border-white/10">
+                  <span className="material-symbols-outlined">search</span>
+                </div>
+                <input
+                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary border border-l-0 border-white/10 bg-white/5 h-full placeholder:text-white/40 px-4 rounded-l-none pl-2 text-base font-normal leading-normal"
+                  placeholder="Search for mentors..."
+                />
+              </div>
+            </label>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg size-10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors">
+              <span className="material-symbols-outlined">notifications</span>
             </button>
+            <div
+              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU')" }}
+            ></div>
           </div>
-          
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                Welcome to MentorConnect - Where Knowledge Meets Opportunity
-              </p>
-              <p className="text-xs text-gray-500">
-                {user?.role === 'student' && 'Connect with experienced mentors and unlock your potential.'}
-                {user?.role === 'mentor' && 'Share your expertise and make a lasting impact on learners.'}
-                {user?.role === 'admin' && 'Manage the platform to create meaningful mentor-learner connections.'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* My MentorConnect Statistics Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-6">
-          {user?.role === 'student' && (
-            <>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Active Mentors</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Completed Sessions</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Learning Hours</div>
-              </div>
-            </>
-          )}
-          
-          {user?.role === 'mentor' && (
-            <>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Students Mentored</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Sessions Conducted</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Mentoring Hours</div>
-              </div>
-            </>
-          )}
-          
-          {user?.role === 'admin' && (
-            <>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Total Users</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Active Connections</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
-                <div className="text-sm text-gray-600">Platform Growth</div>
-              </div>
-            </>
-          )}
-        </div>
-
-
-      </main>
+        </header>
+        <main className="p-10">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

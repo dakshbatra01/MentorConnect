@@ -111,13 +111,13 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       setRefreshToken(refreshTokenData);
       setLoading(false);
-      
+
       // I store tokens in localStorage for persistence
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('refreshToken', refreshTokenData);
-      
+
       console.log('My login successful, user state set to:', userData);
-      
+
       return { success: true };
     } catch (error) {
       console.error('My login error:', error);
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       setRefreshToken(refreshTokenData);
       setLoading(false);
-      
+
       // I store tokens in localStorage for session persistence
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('refreshToken', refreshTokenData);
@@ -211,9 +211,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
     const storedRefreshToken = localStorage.getItem('refreshToken');
-    
+
     console.log('I am initializing from localStorage - token:', !!storedToken, 'refreshToken:', !!storedRefreshToken);
-    
+
     if (storedToken && storedRefreshToken) {
       setToken(storedToken);
       setRefreshToken(storedRefreshToken);
@@ -224,18 +224,27 @@ export const AuthProvider = ({ children }) => {
   // I restore session when tokens are initialized
   useEffect(() => {
     if (!initialized) return;
-    
+
     console.log('My session restoration check - token:', !!token, 'refreshToken:', !!refreshToken, 'user:', !!user);
-    
+
     if (token && refreshToken && !user) {
       console.log('I am restoring session...');
       fetchUser();
-    } else if (initialized && !token) {
-      console.log('I have no tokens available, not loading');
+    } else {
+      // If we are initialized and not restoring a session, we should stop loading.
+      // This covers:
+      // 1. No tokens (guest)
+      // 2. User already loaded
+      // 3. Partial/Corrupt tokens (we should probably logout in this case, but for now just stopping loading allows the UI to render)
+
+      if ((token && !refreshToken) || (!token && refreshToken)) {
+        console.log('Partial tokens detected, clearing session');
+        logout();
+      }
+
       setLoading(false);
     }
-    // I don't set loading to false if I have tokens but am still processing user data
-  }, [initialized, token, refreshToken]);
+  }, [initialized, token, refreshToken, user]);
 
   const value = {
     user,
