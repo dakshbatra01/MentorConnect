@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 
 export default function MentorManagement() {
     const { token } = useAuth();
@@ -48,7 +49,7 @@ export default function MentorManagement() {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/admin/mentors/stats', {
+            const response = await fetch(`${API_URL}/api/admin/mentors/stats`, {
                 headers: { 'auth-token': token }
             });
             if (response.ok) {
@@ -62,7 +63,7 @@ export default function MentorManagement() {
 
     const handleFeatureToggle = async (mentorId) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/admin/mentors/${mentorId}/feature`, {
+            const response = await fetch(`${API_URL} / api / admin / mentors / ${mentorId} / feature`, {
                 method: 'PUT',
                 headers: { 'auth-token': token }
             });
@@ -231,8 +232,8 @@ export default function MentorManagement() {
                                     <button
                                         onClick={() => handleFeatureToggle(mentor._id)}
                                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${mentor.isFeatured
-                                                ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
-                                                : 'bg-[#192d33] text-white hover:bg-[#1f3942]'
+                                            ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
+                                            : 'bg-[#192d33] text-white hover:bg-[#1f3942]'
                                             }`}
                                     >
                                         {mentor.isFeatured ? 'Unfeature' : 'Feature'}
@@ -240,8 +241,8 @@ export default function MentorManagement() {
                                     <button
                                         onClick={() => handleSuspendToggle(mentor._id)}
                                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${!mentor.isActive
-                                                ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
-                                                : 'bg-[#192d33] text-white hover:bg-[#1f3942]'
+                                            ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                                            : 'bg-[#192d33] text-white hover:bg-[#1f3942]'
                                             }`}
                                     >
                                         {mentor.isActive ? 'Suspend' : 'Activate'}

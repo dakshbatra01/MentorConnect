@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 
 export default function AdvancedAnalytics() {
     const { token } = useAuth();
@@ -16,10 +17,10 @@ export default function AdvancedAnalytics() {
             setLoading(true);
             // Fetch data from multiple endpoints
             const [overviewRes, userStatsRes, sessionStatsRes, mentorStatsRes] = await Promise.all([
-                fetch('http://localhost:4000/api/admin/analytics/overview', { headers: { 'auth-token': token } }),
-                fetch('http://localhost:4000/api/admin/users/stats', { headers: { 'auth-token': token } }),
-                fetch('http://localhost:4000/api/admin/sessions/stats', { headers: { 'auth-token': token } }),
-                fetch('http://localhost:4000/api/admin/mentors/stats', { headers: { 'auth-token': token } })
+                fetch(`${API_URL}/api/admin/analytics/overview`, { headers: { 'auth-token': token } }),
+                fetch(`${API_URL}/api/admin/users/stats`, { headers: { 'auth-token': token } }),
+                fetch(`${API_URL}/api/admin/sessions/stats`, { headers: { 'auth-token': token } }),
+                fetch(`${API_URL}/api/admin/mentors/stats`, { headers: { 'auth-token': token } })
             ]);
 
             const overview = await overviewRes.json();
@@ -181,10 +182,10 @@ export default function AdvancedAnalytics() {
                                     <p className="text-xs text-[#92bbc9]">{user.email}</p>
                                 </div>
                                 <span className={`px-2 py-1 rounded text-xs border ${user.role === 'mentor'
-                                        ? 'bg-green-900/30 text-green-400 border-green-600'
-                                        : user.role === 'admin'
-                                            ? 'bg-purple-900/30 text-purple-400 border-purple-600'
-                                            : 'bg-blue-900/30 text-blue-400 border-blue-600'
+                                    ? 'bg-green-900/30 text-green-400 border-green-600'
+                                    : user.role === 'admin'
+                                        ? 'bg-purple-900/30 text-purple-400 border-purple-600'
+                                        : 'bg-blue-900/30 text-blue-400 border-blue-600'
                                     }`}>
                                     {user.role}
                                 </span>

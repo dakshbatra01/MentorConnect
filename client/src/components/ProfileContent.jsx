@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 export default function ProfileContent() {
     const { user, token } = useAuth();
@@ -47,7 +48,7 @@ export default function ProfileContent() {
                 hourlyRate: parseFloat(formData.hourlyRate)
             };
 
-            const response = await fetch('http://localhost:4000/api/auth/profile', {
+            const response = await fetch(`${API_URL}/api/auth/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

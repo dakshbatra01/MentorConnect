@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 export default function ReviewModal({ session, onClose, onSuccess }) {
     const { token } = useAuth();
@@ -11,7 +12,7 @@ export default function ReviewModal({ session, onClose, onSuccess }) {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/session/${session._id}/feedback`, {
+            const response = await fetch(`${API_URL}/api/session/${session._id}/feedback`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

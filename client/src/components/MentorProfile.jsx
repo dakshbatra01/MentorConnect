@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import BookingModal from './BookingModal';
+import API_URL from '../config';
 
 export default function MentorProfile() {
   const { id } = useParams();
@@ -13,12 +14,12 @@ export default function MentorProfile() {
   const [activeTab, setActiveTab] = useState('about');
 
   useEffect(() => {
-    fetchMentorProfile();
+    fetchMentor();
   }, [id]);
 
-  const fetchMentorProfile = async () => {
+  const fetchMentor = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/mentor/${id}`);
+      const response = await fetch(`${API_URL}/api/mentor/${id}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -136,19 +137,19 @@ export default function MentorProfile() {
                     <div className="flex border-b border-white/10 px-4">
                       <button
                         onClick={() => setActiveTab('about')}
-                        className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 flex-1 transition-colors ${activeTab === 'about'
+                        className={`flex flex - col items - center justify - center border - b - [3px] pb - [13px] pt - 4 flex - 1 transition - colors ${activeTab === 'about'
                             ? 'border-b-primary text-white'
                             : 'border-b-transparent text-white/60 hover:text-white'
-                          }`}
+                          } `}
                       >
                         <p className="text-sm font-bold leading-normal tracking-[0.015em]">About</p>
                       </button>
                       <button
                         onClick={() => setActiveTab('reviews')}
-                        className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 flex-1 transition-colors ${activeTab === 'reviews'
+                        className={`flex flex - col items - center justify - center border - b - [3px] pb - [13px] pt - 4 flex - 1 transition - colors ${activeTab === 'reviews'
                             ? 'border-b-primary text-white'
                             : 'border-b-transparent text-white/60 hover:text-white'
-                          }`}
+                          } `}
                       >
                         <p className="text-sm font-bold leading-normal tracking-[0.015em]">Reviews</p>
                       </button>

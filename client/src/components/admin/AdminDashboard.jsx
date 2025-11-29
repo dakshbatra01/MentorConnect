@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 import StatsCard from './StatsCard';
 
 export default function AdminDashboard() {
@@ -15,7 +16,7 @@ export default function AdminDashboard() {
     const fetchOverviewStats = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:4000/api/admin/analytics/overview', {
+            const response = await fetch(`${API_URL}/api/admin/analytics/overview`, {
                 headers: {
                     'auth-token': token
                 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 export default function FeedbackModal({ session, onClose, onSuccess }) {
     const { token } = useAuth();
@@ -24,7 +25,7 @@ export default function FeedbackModal({ session, onClose, onSuccess }) {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:4000/api/feedback/create', {
+            const response = await fetch(`${API_URL}/api/feedback/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,8 +102,8 @@ export default function FeedbackModal({ session, onClose, onSuccess }) {
                                             type="button"
                                             onClick={() => handleCategoryChange(cat, val)}
                                             className={`size-6 rounded flex items-center justify-center text-xs transition-colors ${categories[cat] >= val
-                                                    ? 'bg-primary text-background-dark font-bold'
-                                                    : 'bg-white/5 text-white/40'
+                                                ? 'bg-primary text-background-dark font-bold'
+                                                : 'bg-white/5 text-white/40'
                                                 }`}
                                         >
                                             {val}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 export default function BookingModal({ mentor, onClose, onSuccess }) {
     const { token } = useAuth();
@@ -23,7 +24,7 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:4000/api/session/book', {
+            const response = await fetch(`${API_URL}/api/session/book`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

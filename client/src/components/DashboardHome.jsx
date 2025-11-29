@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ReviewModal from './ReviewModal';
+import API_URL from '../config';
 
 export default function DashboardHome() {
     const { user, token } = useAuth();
@@ -16,7 +17,7 @@ export default function DashboardHome() {
     const fetchPendingReviews = async () => {
         try {
             // Fetch completed sessions where rating is missing
-            const response = await fetch('http://localhost:4000/api/session/my-sessions?status=completed&limit=5', {
+            const response = await fetch(`${API_URL}/api/session/my-sessions?status=completed&limit=5`, {
                 headers: { 'auth-token': token }
             });
             const data = await response.json();

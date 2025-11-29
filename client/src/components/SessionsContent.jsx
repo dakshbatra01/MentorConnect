@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FeedbackModal from './FeedbackModal';
+import API_URL from '../config';
 
 export default function SessionsContent() {
     const { user, token } = useAuth();
@@ -20,7 +21,7 @@ export default function SessionsContent() {
             setLoading(true);
             // In a real app, we might want to filter by status on the backend
             // For now, we'll fetch all and filter on client or assume the endpoint returns all relevant
-            const response = await fetch('http://localhost:4000/api/session/user/all', {
+            const response = await fetch(`${API_URL}/api/session/user/all`, {
                 headers: {
                     'auth-token': token
                 }
@@ -41,7 +42,7 @@ export default function SessionsContent() {
 
     const handleStatusUpdate = async (sessionId, newStatus) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/session/update-status/${sessionId}`, {
+            const response = await fetch(`${API_URL}/api/session/update-status/${sessionId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,8 +102,8 @@ export default function SessionsContent() {
                 <button
                     onClick={() => setActiveTab('upcoming')}
                     className={`px-6 py-3 text-sm font-bold transition-colors border-b-2 ${activeTab === 'upcoming'
-                            ? 'border-primary text-white'
-                            : 'border-transparent text-white/60 hover:text-white'
+                        ? 'border-primary text-white'
+                        : 'border-transparent text-white/60 hover:text-white'
                         }`}
                 >
                     Upcoming
@@ -110,8 +111,8 @@ export default function SessionsContent() {
                 <button
                     onClick={() => setActiveTab('past')}
                     className={`px-6 py-3 text-sm font-bold transition-colors border-b-2 ${activeTab === 'past'
-                            ? 'border-primary text-white'
-                            : 'border-transparent text-white/60 hover:text-white'
+                        ? 'border-primary text-white'
+                        : 'border-transparent text-white/60 hover:text-white'
                         }`}
                 >
                     Past

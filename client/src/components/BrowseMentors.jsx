@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 export default function BrowseMentors() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function BrowseMentors() {
   const [totalPages, setTotalPages] = useState(1);
   const { user } = useAuth();
 
-  const API_BASE_URL = 'http://localhost:4000/api';
+  const API_BASE_URL = `${API_URL}/api`;
 
   useEffect(() => {
     fetchMentors();

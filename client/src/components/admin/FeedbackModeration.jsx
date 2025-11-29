@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 
 export default function FeedbackModeration() {
     const { token } = useAuth();
@@ -29,7 +30,7 @@ export default function FeedbackModeration() {
                 Object.entries(filters).filter(([_, v]) => v !== '')
             );
 
-            const response = await fetch(`http://localhost:4000/api/admin/feedback?${queryParams}`, {
+            const response = await fetch(`${API_URL}/api/admin/feedback?${queryParams}`, {
                 headers: { 'auth-token': token }
             });
 
@@ -47,7 +48,7 @@ export default function FeedbackModeration() {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/admin/feedback/stats', {
+            const response = await fetch(`${API_URL}/api/admin/feedback/stats`, {
                 headers: { 'auth-token': token }
             });
             if (response.ok) {
@@ -59,11 +60,11 @@ export default function FeedbackModeration() {
         }
     };
 
-    const handleDeleteFeedback = async (id) => {
+    const handleDelete = async (feedbackId) => {
         if (!window.confirm('Are you sure you want to delete this feedback?')) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/admin/feedback/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/feedback/${feedbackId}`, {
                 method: 'DELETE',
                 headers: { 'auth-token': token }
             });

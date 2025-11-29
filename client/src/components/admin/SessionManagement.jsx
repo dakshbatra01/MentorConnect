@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 
 export default function SessionManagement() {
     const { token } = useAuth();
@@ -29,7 +30,7 @@ export default function SessionManagement() {
                 Object.entries(filters).filter(([_, v]) => v !== '')
             );
 
-            const response = await fetch(`http://localhost:4000/api/admin/sessions?${queryParams}`, {
+            const response = await fetch(`${API_URL}/api/admin/sessions?${queryParams}`, {
                 headers: { 'auth-token': token }
             });
 
@@ -47,7 +48,7 @@ export default function SessionManagement() {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/admin/sessions/stats', {
+            const response = await fetch(`${API_URL}/api/admin/sessions/stats`, {
                 headers: { 'auth-token': token }
             });
             if (response.ok) {

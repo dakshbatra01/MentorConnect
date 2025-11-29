@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import API_URL from '../../config';
 
 export default function UserManagement() {
     const { token } = useAuth();
@@ -33,7 +34,7 @@ export default function UserManagement() {
                 Object.entries(filters).filter(([_, v]) => v !== '')
             );
 
-            const response = await fetch(`http://localhost:4000/api/admin/users?${queryParams}`, {
+            const response = await fetch(`${API_URL}/api/admin/users?${queryParams}`, {
                 headers: { 'auth-token': token }
             });
 
@@ -51,7 +52,7 @@ export default function UserManagement() {
 
     const handleRoleChange = async (userId, newRole) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/admin/users/${userId}/role`, {
+            const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ export default function UserManagement() {
 
     const handleDeleteUser = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/admin/users/${userId}`, {
+            const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: { 'auth-token': token }
             });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
 export default function NotificationBell() {
     const { token } = useAuth();
@@ -29,7 +30,7 @@ export default function NotificationBell() {
 
     const fetchNotifications = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/notifications', {
+            const response = await fetch(`${API_URL}/api/notifications`, {
                 headers: { 'auth-token': token }
             });
             const data = await response.json();
@@ -42,7 +43,7 @@ export default function NotificationBell() {
 
     const markAsRead = async (id) => {
         try {
-            await fetch(`http://localhost:4000/api/notifications/${id}/read`, {
+            await fetch(`${API_URL}/api/notifications/${id}/read`, {
                 method: 'PUT',
                 headers: { 'auth-token': token }
             });
