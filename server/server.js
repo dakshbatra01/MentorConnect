@@ -7,6 +7,7 @@ const mentorRoutes = require('./routes/mentor.js');
 const sessionRoutes = require('./routes/session.js');
 const feedbackRoutes = require('./routes/feedback.js');
 const adminRoutes = require('./routes/admin.js');
+const notificationRoutes = require('./routes/notifications.js');
 require('dotenv').config();
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/mentor/', mentorRoutes);
 app.use('/api/session/', sessionRoutes);
 app.use('/api/feedback/', feedbackRoutes);
 app.use('/api/admin/', adminRoutes);
+app.use('/api/notifications/', notificationRoutes);
 
 // My graceful server startup with proper error handling
 const startServer = async () => {

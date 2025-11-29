@@ -9,6 +9,7 @@ export default function BrowseMentors() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExpertise, setSelectedExpertise] = useState('');
+  const [selectedAvailability, setSelectedAvailability] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState('rating');
   const [page, setPage] = useState(1);
@@ -19,7 +20,7 @@ export default function BrowseMentors() {
 
   useEffect(() => {
     fetchMentors();
-  }, [selectedExpertise, minRating, sortBy, page]);
+  }, [selectedExpertise, selectedAvailability, minRating, sortBy, page]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -45,6 +46,9 @@ export default function BrowseMentors() {
 
       if (selectedExpertise) {
         params.append('expertise', selectedExpertise);
+      }
+      if (selectedAvailability) {
+        params.append('availability', selectedAvailability);
       }
       if (minRating > 0) {
         params.append('minRating', minRating.toString());
@@ -131,6 +135,24 @@ export default function BrowseMentors() {
                       <p className="text-sm font-normal leading-normal text-white/80 flex items-center gap-1">
                         {rating}+ <span className="material-symbols-outlined text-yellow-400 !text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       </p>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {/* Availability Filter */}
+              <div>
+                <h3 className="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-3">Availability</h3>
+                <div className="space-y-2">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                    <label key={day} className="flex items-center gap-x-3 py-1 cursor-pointer">
+                      <input
+                        checked={selectedAvailability === day}
+                        onChange={() => setSelectedAvailability(selectedAvailability === day ? '' : day)}
+                        className="form-radio h-5 w-5 border-white/10 bg-transparent text-primary focus:ring-primary"
+                        name="availability"
+                        type="radio"
+                      />
+                      <p className="text-sm font-normal leading-normal text-white/80">{day}</p>
                     </label>
                   ))}
                 </div>
@@ -272,8 +294,8 @@ export default function BrowseMentors() {
                       key={pageNum}
                       onClick={() => setPage(pageNum)}
                       className={`size-10 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${page === pageNum
-                          ? 'bg-primary text-background-dark'
-                          : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                        ? 'bg-primary text-background-dark'
+                        : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
                         }`}
                     >
                       {pageNum}

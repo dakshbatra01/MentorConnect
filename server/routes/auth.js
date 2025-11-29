@@ -40,11 +40,11 @@ router.post(
     const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
-      const user = await User.create({ 
-        name, 
-        email: email.toLowerCase(), 
+      const user = await User.create({
+        name,
+        email: email.toLowerCase(),
         password: hashedPassword,
-        role: role || 'student' 
+        role: role || 'student'
       });
       const data = {
         user: {
@@ -54,15 +54,15 @@ router.post(
           role: user.role,
         },
       };
-      
+
       // Generate access token (expires in 15 minutes)
       let authToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-      
+
       // Generate refresh token (expires in 7 days)
       let refreshToken = jwt.sign({ userId: user._id }, RefreshSecretKey, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        authToken, 
+
+      res.status(201).json({
+        authToken,
         refreshToken,
         user: {
           id: user._id,
@@ -121,15 +121,15 @@ router.post(
           role: user.role,
         },
       };
-      
+
       // Generate access token (expires in 15 minutes)
       let authToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-      
+
       // Generate refresh token (expires in 7 days)
       let refreshToken = jwt.sign({ userId: user._id }, RefreshSecretKey, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        authToken, 
+
+      res.status(201).json({
+        authToken,
         refreshToken,
         user: {
           id: user._id,
@@ -143,6 +143,35 @@ router.post(
     }
   }
 );
+
+// Update Profile Route
+router.put("/profile", fetchuser, async (req, res) => {
+  try {
+    const { name, bio, avatar, expertise, hourlyRate } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+    if (avatar) user.avatar = avatar;
+    if (expertise) user.expertise = expertise;
+    if (hourlyRate) user.hourlyRate = hourlyRate;
+
+    await user.save();
+
+    // Return updated user without password
+    const updatedUser = await User.findById(userId).select("-password");
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 router.post("/getuser", fetchuser, async (req, res) => {
   try {
@@ -158,7 +187,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
 router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
-    
+
     if (!refreshToken) {
       return res.status(401).json({ error: "Refresh token required" });
     }
@@ -182,9 +211,9 @@ router.post("/refresh-token", async (req, res) => {
         role: user.role,
       },
     };
-    
+
     const newAuthToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-    
+
     res.json({ authToken: newAuthToken });
   } catch (error) {
     res.status(401).json({ error: "Invalid refresh token" });

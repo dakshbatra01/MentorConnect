@@ -7,10 +7,10 @@ const fetchuser = require("../middleware/fetchuser");
 // Get all mentors with advanced filtering, sorting, and pagination
 router.get("/all", async (req, res) => {
   try {
-    const { 
-      expertise, 
-      minRating, 
-      maxRate, 
+    const {
+      expertise,
+      minRating,
+      maxRate,
       minRate,
       experience,
       search,
@@ -32,6 +32,11 @@ router.get("/all", async (req, res) => {
       query.rating = { $gte: parseFloat(minRating) };
     }
 
+    // Filter by availability (day)
+    if (req.query.availability) {
+      query['availability.day'] = { $regex: req.query.availability, $options: 'i' };
+    }
+
     // Filter by hourly rate range
     if (maxRate || minRate) {
       query.hourlyRate = {};
@@ -46,12 +51,12 @@ router.get("/all", async (req, res) => {
 
     // Search by name or skill
     if (search) {
-      const users = await User.find({ 
-        name: { $regex: search, $options: 'i' } 
+      const users = await User.find({
+        name: { $regex: search, $options: 'i' }
       }).select('_id');
-      
+
       const userIds = users.map(u => u._id);
-      
+
       query.$or = [
         { userId: { $in: userIds } },
         { expertise: { $regex: search, $options: 'i' } },
@@ -149,7 +154,7 @@ router.post("/profile", fetchuser, async (req, res) => {
       mentor.certifications = certifications || mentor.certifications;
       mentor.profileImage = profileImage || mentor.profileImage;
       mentor.socialLinks = socialLinks || mentor.socialLinks;
-      
+
       await mentor.save();
     } else {
       // Create new profile
@@ -242,7 +247,7 @@ router.put("/toggle-status", fetchuser, async (req, res) => {
     mentor.isActive = !mentor.isActive;
     await mentor.save();
 
-    res.json({ 
+    res.json({
       message: `Mentor profile ${mentor.isActive ? 'activated' : 'deactivated'} successfully`,
       mentor
     });
@@ -255,7 +260,7 @@ router.put("/toggle-status", fetchuser, async (req, res) => {
 router.get("/stats/:id", async (req, res) => {
   try {
     const mentor = await Mentor.findById(req.params.id);
-    
+
     if (!mentor) {
       return res.status(404).json({ error: "Mentor not found" });
     }

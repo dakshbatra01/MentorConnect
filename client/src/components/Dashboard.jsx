@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 export default function Dashboard() {
   const { logout, user } = useAuth();
@@ -38,8 +39,8 @@ export default function Dashboard() {
             <NavLink
               to="/dashboard"
               className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <span className="material-symbols-outlined">dashboard</span>
@@ -48,8 +49,8 @@ export default function Dashboard() {
             <NavLink
               to="/mentors"
               className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <span className="material-symbols-outlined">group</span>
@@ -58,28 +59,19 @@ export default function Dashboard() {
             <NavLink
               to="/sessions"
               className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <span className="material-symbols-outlined">event_upcoming</span>
               <p className="text-sm font-medium leading-normal">Sessions</p>
             </NavLink>
-            <NavLink
-              to="/messages"
-              className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-              <span className="material-symbols-outlined">chat_bubble</span>
-              <p className="text-sm font-medium leading-normal">Messages</p>
-            </NavLink>
+
             <NavLink
               to="/profile"
               className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <span className="material-symbols-outlined">person</span>
@@ -121,12 +113,10 @@ export default function Dashboard() {
             </label>
           </div>
           <div className="flex items-center gap-4">
-            <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg size-10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
+            <NotificationBell />
             <div
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU')" }}
+              style={{ backgroundImage: `url('${user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU"}')` }}
             ></div>
           </div>
         </header>

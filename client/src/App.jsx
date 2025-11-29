@@ -10,7 +10,7 @@ import './App.css';
 
 import DashboardHome from './components/DashboardHome.jsx';
 import SessionsContent from './components/SessionsContent.jsx';
-import MessagesContent from './components/MessagesContent.jsx';
+
 import ProfileContent from './components/ProfileContent.jsx';
 
 // Admin components
@@ -123,7 +123,7 @@ function AppRoutes() {
         <Route path="mentors" element={<BrowseMentors />} />
         <Route path="mentor/:id" element={<MentorProfile />} />
         <Route path="sessions" element={<SessionsContent />} />
-        <Route path="messages" element={<MessagesContent />} />
+
         <Route path="profile" element={<ProfileContent />} />
       </Route>
 

@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ReviewModal from './ReviewModal';
 
 export default function DashboardHome() {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
+    const [pendingReviews, setPendingReviews] = useState([]);
+    const [selectedSession, setSelectedSession] = useState(null);
+
+    useEffect(() => {
+        if (user?.role === 'student') {
+            fetchPendingReviews();
+        }
+    }, [user, token]);
+
+    const fetchPendingReviews = async () => {
+        try {
+            // Fetch completed sessions where rating is missing
+            const response = await fetch('http://localhost:4000/api/session/my-sessions?status=completed&limit=5', {
+                headers: { 'auth-token': token }
+            });
+            const data = await response.json();
+            // Client-side filter for unrated sessions (since API might return all completed)
+            const unrated = data.sessions.filter(s => !s.rating);
+            setPendingReviews(unrated);
+        } catch (error) {
+            console.error('Error fetching pending reviews:', error);
+        }
+    };
 
     return (
         <>
@@ -17,6 +41,30 @@ export default function DashboardHome() {
                     </p>
                 </div>
             </div>
+
+            {/* Pending Reviews Section (Student Only) */}
+            {user?.role === 'student' && pendingReviews.length > 0 && (
+                <div className="mb-8">
+                    <h2 className="text-white text-2xl font-bold mb-4">Pending Reviews</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {pendingReviews.map(session => (
+                            <div key={session._id} className="p-6 rounded-xl bg-primary/10 border border-primary/20 flex justify-between items-center">
+                                <div>
+                                    <p className="text-white font-bold">{session.topic}</p>
+                                    <p className="text-white/60 text-sm">with {session.mentorId.name}</p>
+                                    <p className="text-white/40 text-xs mt-1">{new Date(session.date).toLocaleDateString()}</p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedSession(session)}
+                                    className="px-4 py-2 rounded-lg bg-primary text-background-dark font-bold hover:bg-primary/90 transition-colors"
+                                >
+                                    Leave Review
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Stats Cards - Different for Mentor vs Student */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -204,6 +252,17 @@ export default function DashboardHome() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {selectedSession && (
+                <ReviewModal
+                    session={selectedSession}
+                    onClose={() => setSelectedSession(null)}
+                    onSuccess={() => {
+                        fetchPendingReviews();
+                        setSelectedSession(null);
+                    }}
+                />
             )}
         </>
     );

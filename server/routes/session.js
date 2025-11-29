@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Session = require("../models/Session");
 const Mentor = require("../models/Mentor");
+const Notification = require("../models/Notification");
 const fetchuser = require("../middleware/fetchuser");
 
 // Book a session
@@ -27,6 +28,14 @@ router.post("/book", fetchuser, async (req, res) => {
       notes: notes || ''
     });
 
+    // Notify Mentor
+    await Notification.create({
+      userId: mentorId,
+      type: 'session_booked',
+      message: `New session request from a student for ${topic}`,
+      relatedId: session._id
+    });
+
     res.status(201).json(session);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -37,10 +46,10 @@ router.post("/book", fetchuser, async (req, res) => {
 router.get("/my-sessions", fetchuser, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { 
-      status, 
-      role, 
-      page = 1, 
+    const {
+      status,
+      role,
+      page = 1,
       limit = 10,
       sortBy = 'date',
       order = 'desc'
@@ -113,8 +122,8 @@ router.get("/:id", fetchuser, async (req, res) => {
     }
 
     // Verify user is part of the session
-    if (session.studentId._id.toString() !== req.user.id && 
-        session.mentorId._id.toString() !== req.user.id) {
+    if (session.studentId._id.toString() !== req.user.id &&
+      session.mentorId._id.toString() !== req.user.id) {
       return res.status(403).json({ error: "Access denied" });
     }
 
@@ -148,6 +157,22 @@ router.put("/:id/status", fetchuser, async (req, res) => {
         { userId: session.mentorId },
         { $inc: { totalSessions: 1 } }
       );
+
+      // Notify Student to leave review
+      await Notification.create({
+        userId: session.studentId,
+        type: 'review_reminder',
+        message: `Your session on ${session.topic} is completed. Please leave a review!`,
+        relatedId: session._id
+      });
+    } else if (status === 'confirmed') {
+      // Notify Student
+      await Notification.create({
+        userId: session.studentId,
+        type: 'session_confirmed',
+        message: `Your session on ${session.topic} has been confirmed!`,
+        relatedId: session._id
+      });
     }
 
     res.json(session);
@@ -188,7 +213,7 @@ router.put("/:id/feedback", fetchuser, async (req, res) => {
     });
 
     const avgRating = mentorSessions.reduce((sum, s) => sum + s.rating, 0) / mentorSessions.length;
-    
+
     await Mentor.findOneAndUpdate(
       { userId: session.mentorId },
       { rating: avgRating }
@@ -210,13 +235,25 @@ router.delete("/:id", fetchuser, async (req, res) => {
     }
 
     // Verify user is part of the session
-    if (session.studentId.toString() !== req.user.id && 
-        session.mentorId.toString() !== req.user.id) {
+    if (session.studentId.toString() !== req.user.id &&
+      session.mentorId.toString() !== req.user.id) {
       return res.status(403).json({ error: "Access denied" });
     }
 
     session.status = 'cancelled';
     await session.save();
+
+    // Notify the other party
+    const recipientId = req.user.id === session.studentId.toString()
+      ? session.mentorId
+      : session.studentId;
+
+    await Notification.create({
+      userId: recipientId,
+      type: 'session_cancelled',
+      message: `Session on ${session.topic} has been cancelled.`,
+      relatedId: session._id
+    });
 
     res.json({ message: "Session cancelled successfully", session });
   } catch (error) {
@@ -262,7 +299,7 @@ router.put("/:id", fetchuser, async (req, res) => {
 router.get("/stats/me", fetchuser, async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const sessions = await Session.find({
       $or: [{ studentId: userId }, { mentorId: userId }]
     });
