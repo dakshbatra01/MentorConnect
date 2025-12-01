@@ -29,7 +29,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
             <div
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
-              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhjURBa14oRHrjnc60wSKWO909MMJ19CcB3NsgK23AZMbwILX7Lhc2rcz0D5g3ppKKO5yt5HNBv0zvJhQl6OFrh64jJsfR_TpdBDe4TJvYIAL5oPc908la57Swwzmz3v43dcYBkdJc8skFiXSKPEysVHcyEdDI2kApCLVzLo_P8CVCehvM132Gn3RWI51xlW0Slz54O9UwWCeGEpv4Xtikz14AOdMqo2CllepmVhPd1Fm0FdNOuL0O4Xn8bKuvJWxNxVZ2Bao04jdZ')" }}
+              style={{ backgroundImage: `url('${user?.avatar || `https://avatar.iran.liara.run/public?username=${user?.name || 'User'}`}')` }}
             ></div>
             <div className="flex flex-col">
               <h1 className="text-white text-base font-medium leading-normal">{user?.name || 'Alex Chen'}</h1>
@@ -104,7 +104,7 @@ export default function Dashboard() {
               <div
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                style={{ backgroundImage: `url('${user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU"}')` }}
+                style={{ backgroundImage: `url('${user?.avatar || `https://avatar.iran.liara.run/public?username=${user?.name || 'User'}`}')` }}
               ></div>
 
               {showProfileMenu && (
