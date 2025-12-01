@@ -111,7 +111,7 @@ export default function MentorProfile() {
                     {user?.role === 'student' && (
                       <button
                         onClick={() => setShowBookingModal(true)}
-                        className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white text-base font-bold leading-normal tracking-[0.015em] w-full transition-all shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
+                        className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-primary text-background-dark hover:bg-primary/90 text-sm font-bold leading-normal tracking-[0.015em] transition-all shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
                       >
                         <span className="truncate">Request a Session</span>
                       </button>

@@ -126,6 +126,7 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
                             min={new Date().toISOString().split('T')[0]}
                             value={formData.date}
                             onChange={handleChange}
+                            style={{ colorScheme: 'dark' }}
                             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
@@ -140,17 +141,36 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
                             disabled={!formData.date}
                             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                         >
-                            <option value="">Select a time slot</option>
+                            <option value="" className="bg-[#111e22]">Select a time slot</option>
                             {timeSlots.map((slot) => {
                                 const isBooked = bookedSlots.includes(slot.start);
+
+                                // Check if slot is in the past for today
+                                let isPast = false;
+                                if (formData.date) {
+                                    const today = new Date();
+                                    const selectedDate = new Date(formData.date);
+                                    const isToday = selectedDate.toDateString() === today.toDateString();
+
+                                    if (isToday) {
+                                        const currentHour = today.getHours();
+                                        const slotHour = parseInt(slot.start.split(':')[0]);
+                                        if (slotHour <= currentHour) {
+                                            isPast = true;
+                                        }
+                                    }
+                                }
+
+                                const isDisabled = isBooked || isPast;
+
                                 return (
                                     <option
                                         key={slot.start}
                                         value={slot.start}
-                                        disabled={isBooked}
-                                        className={isBooked ? 'text-red-400' : ''}
+                                        disabled={isDisabled}
+                                        className={`bg-[#111e22] ${isDisabled ? 'text-white/30' : ''} ${isBooked ? 'text-red-400' : ''}`}
                                     >
-                                        {slot.label} {isBooked ? '(Booked)' : ''}
+                                        {slot.label} {isBooked ? '(Booked)' : ''} {isPast ? '(Past)' : ''}
                                     </option>
                                 );
                             })}
