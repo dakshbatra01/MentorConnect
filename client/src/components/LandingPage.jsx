@@ -304,7 +304,7 @@ const LandingPage = () => {
                   <a className="hover:text-white transition-colors" href="#">Terms of Service</a>
                   <a className="hover:text-white transition-colors" href="#">Privacy Policy</a>
                 </nav>
-                <p className="text-sm text-center md:text-right">© 2024 MentorConnect. All rights reserved.</p>
+                <p className="text-sm text-center md:text-right">© 2025 MentorConnect. All rights reserved.</p>
               </div>
             </footer>
           </div>
