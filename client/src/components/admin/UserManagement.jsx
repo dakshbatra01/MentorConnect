@@ -50,24 +50,7 @@ export default function UserManagement() {
         }
     };
 
-    const handleRoleChange = async (userId, newRole) => {
-        try {
-            const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'auth-token': token
-                },
-                body: JSON.stringify({ role: newRole })
-            });
 
-            if (!response.ok) throw new Error('Failed to update role');
-
-            await fetchUsers();
-        } catch (err) {
-            alert('Error: ' + err.message);
-        }
-    };
 
     const handleDeleteUser = async (userId) => {
         try {
@@ -180,15 +163,11 @@ export default function UserManagement() {
                                             </td>
                                             <td className="px-6 py-4 text-[#92bbc9]">{user.email}</td>
                                             <td className="px-6 py-4">
-                                                <select
-                                                    value={user.role}
-                                                    onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                                    className={`px-3 py-1 rounded-full border text-sm font-medium ${getRoleBadge(user.role)}`}
-                                                >
-                                                    <option value="student">Student</option>
-                                                    <option value="mentor">Mentor</option>
-                                                    <option value="admin">Admin</option>
-                                                </select>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full border text-sm font-medium ${getRoleBadge(user.role)}`}>
+                                                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                                    </span>
+                                                </td>
                                             </td>
                                             <td className="px-6 py-4 text-[#92bbc9] text-sm">
                                                 {new Date(user.createdAt).toLocaleDateString()}

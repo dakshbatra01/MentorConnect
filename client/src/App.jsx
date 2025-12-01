@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard.jsx';
 import LandingPage from './components/LandingPage.jsx';
 import BrowseMentors from './components/BrowseMentors.jsx';
 import MentorProfile from './components/MentorProfile.jsx';
+import MentorOnboarding from './components/MentorOnboarding.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import './App.css';
 
@@ -61,6 +62,9 @@ const PublicRoute = ({ children }) => {
   }
 
   if (user) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -120,6 +124,7 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="dashboard" element={<DashboardHome />} />
+        <Route path="mentor-onboarding" element={<MentorOnboarding />} />
         <Route path="mentors" element={<BrowseMentors />} />
         <Route path="mentor/:id" element={<MentorProfile />} />
         <Route path="sessions" element={<SessionsContent />} />

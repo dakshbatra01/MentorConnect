@@ -9,8 +9,8 @@ export default function BrowseMentors() {
   const [filteredMentors, setFilteredMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExpertise, setSelectedExpertise] = useState('');
-  const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [selectedExpertise, setSelectedExpertise] = useState([]);
+  const [allExpertise, setAllExpertise] = useState([]);
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState('rating');
   const [page, setPage] = useState(1);
@@ -20,8 +20,23 @@ export default function BrowseMentors() {
   const API_BASE_URL = `${API_URL}/api`;
 
   useEffect(() => {
+    fetchDomains();
     fetchMentors();
-  }, [selectedExpertise, selectedAvailability, minRating, sortBy, page]);
+  }, [selectedExpertise, minRating, sortBy, page]);
+
+  const fetchDomains = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/mentor/domains`);
+      if (response.ok) {
+        const data = await response.json();
+        // Flatten and unique domains if they are arrays
+        const uniqueDomains = [...new Set(data.flat())];
+        setAllExpertise(uniqueDomains);
+      }
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+    }
+  };
 
   useEffect(() => {
     if (searchQuery) {
@@ -45,11 +60,8 @@ export default function BrowseMentors() {
         order: 'desc'
       });
 
-      if (selectedExpertise) {
-        params.append('expertise', selectedExpertise);
-      }
-      if (selectedAvailability) {
-        params.append('availability', selectedAvailability);
+      if (selectedExpertise.length > 0) {
+        params.append('expertise', selectedExpertise.join(','));
       }
       if (minRating > 0) {
         params.append('minRating', minRating.toString());
@@ -71,7 +83,7 @@ export default function BrowseMentors() {
     }
   };
 
-  const allExpertise = ['Software Engineering', 'Data Science', 'Product Design', 'Marketing', 'DevOps', 'Business Strategy', 'Career Development'];
+
 
   return (
     <div className="relative flex flex-col w-full">
@@ -110,8 +122,14 @@ export default function BrowseMentors() {
                   {allExpertise.map((exp, idx) => (
                     <label key={idx} className="flex items-center gap-x-3 py-1 cursor-pointer">
                       <input
-                        checked={selectedExpertise === exp}
-                        onChange={() => setSelectedExpertise(selectedExpertise === exp ? '' : exp)}
+                        checked={selectedExpertise.includes(exp)}
+                        onChange={() => {
+                          if (selectedExpertise.includes(exp)) {
+                            setSelectedExpertise(selectedExpertise.filter(e => e !== exp));
+                          } else {
+                            setSelectedExpertise([...selectedExpertise, exp]);
+                          }
+                        }}
                         className="form-checkbox h-5 w-5 rounded border-white/10 bg-transparent text-primary checked:bg-primary focus:ring-primary focus:ring-offset-0"
                         type="checkbox"
                       />
@@ -140,31 +158,13 @@ export default function BrowseMentors() {
                   ))}
                 </div>
               </div>
-              {/* Availability Filter */}
-              <div>
-                <h3 className="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-3">Availability</h3>
-                <div className="space-y-2">
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                    <label key={day} className="flex items-center gap-x-3 py-1 cursor-pointer">
-                      <input
-                        checked={selectedAvailability === day}
-                        onChange={() => setSelectedAvailability(selectedAvailability === day ? '' : day)}
-                        className="form-radio h-5 w-5 border-white/10 bg-transparent text-primary focus:ring-primary"
-                        name="availability"
-                        type="radio"
-                      />
-                      <p className="text-sm font-normal leading-normal text-white/80">{day}</p>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 pt-4">
               <button
                 onClick={() => {
                   setSearchQuery('');
-                  setSelectedExpertise('');
+                  setSelectedExpertise([]);
                   setMinRating(0);
                 }}
                 className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/5 border border-white/10 text-white text-sm font-medium leading-normal hover:bg-white/10 transition-colors"
@@ -210,7 +210,7 @@ export default function BrowseMentors() {
               <button
                 onClick={() => {
                   setSearchQuery('');
-                  setSelectedExpertise('');
+                  setSelectedExpertise([]);
                   setMinRating(0);
                 }}
                 className="mt-4 px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors"
@@ -224,17 +224,23 @@ export default function BrowseMentors() {
                 <div key={mentor._id} className="group relative flex flex-col rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 text-center transition-all duration-300 hover:bg-white/10 hover:-translate-y-1">
                   <div
                     className="mx-auto size-24 rounded-full bg-cover bg-center mb-4 bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-2xl font-bold"
-                    style={mentor.profileImage ? {
-                      backgroundImage: `url('${mentor.profileImage}')`,
-                    } : {}}
+                    style={{
+                      backgroundImage: mentor.profileImage
+                        ? `url('${mentor.profileImage}')`
+                        : mentor.gender === 'female'
+                          ? `url('https://avatar.iran.liara.run/public/girl?username=${mentor.userId?.name || 'User'}')`
+                          : `url('https://avatar.iran.liara.run/public/boy?username=${mentor.userId?.name || 'User'}')`,
+                    }}
                   >
-                    {!mentor.profileImage && (mentor.userId?.name?.[0] || 'M')}
                   </div>
                   <h4 className="text-lg font-bold text-white">
                     {mentor.userId?.name || 'Mentor'}
                   </h4>
                   <p className="text-sm text-white/60 mb-2 line-clamp-1">
                     {mentor.experience || 'Experienced Professional'}
+                  </p>
+                  <p className="text-white font-semibold text-sm mb-3">
+                    ${mentor.hourlyRate || 0}/hr
                   </p>
                   <div className="flex items-center justify-center gap-1 mb-4">
                     <span
@@ -315,7 +321,7 @@ export default function BrowseMentors() {
             </div>
           )}
         </section>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

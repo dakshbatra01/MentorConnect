@@ -6,16 +6,57 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
     const { token } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [bookedSlots, setBookedSlots] = useState([]);
     const [formData, setFormData] = useState({
         date: '',
-        startTime: '',
-        endTime: '',
+        timeSlot: '', // Replaces startTime/endTime
         topic: '',
         notes: ''
     });
 
+    // Generate hourly slots from 9 AM to 8 PM
+    const generateTimeSlots = () => {
+        const slots = [];
+        for (let i = 9; i < 20; i++) {
+            const start = i < 10 ? `0${i}:00` : `${i}:00`;
+            const end = i + 1 < 10 ? `0${i + 1}:00` : `${i + 1}:00`;
+            slots.push({ start, end, label: `${formatTime(start)} - ${formatTime(end)}` });
+        }
+        return slots;
+    };
+
+    const formatTime = (time) => {
+        const [hour, minute] = time.split(':');
+        const h = parseInt(hour);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const formattedHour = h % 12 || 12;
+        return `${formattedHour}:${minute} ${ampm}`;
+    };
+
+    const timeSlots = generateTimeSlots();
+
+    const fetchBookedSlots = async (date) => {
+        try {
+            const response = await fetch(`${API_URL}/api/session/mentor/${mentor._id}/booked-slots?date=${date}`, {
+                headers: { 'auth-token': token }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setBookedSlots(data.map(session => session.startTime));
+            }
+        } catch (err) {
+            console.error('Error fetching booked slots:', err);
+        }
+    };
+
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+
+        if (name === 'date') {
+            fetchBookedSlots(value);
+            setFormData(prev => ({ ...prev, date: value, timeSlot: '' })); // Reset slot on date change
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -24,6 +65,10 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
         setError('');
 
         try {
+            // Find selected slot to get start and end time
+            const selectedSlot = timeSlots.find(slot => slot.start === formData.timeSlot);
+            if (!selectedSlot) throw new Error('Please select a time slot');
+
             const response = await fetch(`${API_URL}/api/session/book`, {
                 method: 'POST',
                 headers: {
@@ -32,7 +77,11 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
                 },
                 body: JSON.stringify({
                     mentorId: mentor.userId._id,
-                    ...formData
+                    date: formData.date,
+                    startTime: selectedSlot.start,
+                    endTime: selectedSlot.end,
+                    topic: formData.topic,
+                    notes: formData.notes
                 })
             });
 
@@ -74,35 +123,38 @@ export default function BookingModal({ mentor, onClose, onSuccess }) {
                             type="date"
                             name="date"
                             required
+                            min={new Date().toISOString().split('T')[0]}
                             value={formData.date}
                             onChange={handleChange}
                             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-white/60 text-sm mb-1">Start Time</label>
-                            <input
-                                type="time"
-                                name="startTime"
-                                required
-                                value={formData.startTime}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-white/60 text-sm mb-1">End Time</label>
-                            <input
-                                type="time"
-                                name="endTime"
-                                required
-                                value={formData.endTime}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
+                    <div>
+                        <label className="block text-white/60 text-sm mb-1">Time Slot (1 Hour)</label>
+                        <select
+                            name="timeSlot"
+                            required
+                            value={formData.timeSlot}
+                            onChange={handleChange}
+                            disabled={!formData.date}
+                            className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                        >
+                            <option value="">Select a time slot</option>
+                            {timeSlots.map((slot) => {
+                                const isBooked = bookedSlots.includes(slot.start);
+                                return (
+                                    <option
+                                        key={slot.start}
+                                        value={slot.start}
+                                        disabled={isBooked}
+                                        className={isBooked ? 'text-red-400' : ''}
+                                    >
+                                        {slot.label} {isBooked ? '(Booked)' : ''}
+                                    </option>
+                                );
+                            })}
+                        </select>
                     </div>
 
                     <div>

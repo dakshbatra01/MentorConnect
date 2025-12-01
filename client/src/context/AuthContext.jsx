@@ -128,12 +128,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // My signup function to register new users
-  const signup = async (name, email, password, role = 'student') => {
+  const signup = async (name, email, password, role = 'student', domain = '') => {
     try {
       // I don't set loading to true here to prevent form reset on error
       const data = await apiCall('/signup', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, domain }),
       });
 
       const authToken = data.authToken;

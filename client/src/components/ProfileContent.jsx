@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import API_URL from '../config';
 
@@ -14,22 +14,52 @@ export default function ProfileContent() {
         avatar: user?.avatar || '',
         expertise: user?.expertise?.join(', ') || '',
         hourlyRate: user?.hourlyRate || 0,
-        experience: user?.experience || ''
+        gender: user?.gender || 'male',
+        experience: user?.experience || '',
+        education: user?.education || []
     });
 
+    useEffect(() => {
+        if (user?.role === 'mentor') {
+            fetchMentorProfile();
+        }
+    }, [user]);
+
+    const fetchMentorProfile = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/mentor/profile/me`, {
+                headers: { 'auth-token': token }
+            });
+            if (response.ok) {
+                const mentorData = await response.json();
+                setFormData(prev => ({
+                    ...prev,
+                    bio: mentorData.bio || prev.bio,
+                    gender: mentorData.gender || 'male',
+                    hourlyRate: mentorData.hourlyRate || prev.hourlyRate,
+                    expertise: mentorData.expertise?.join(', ') || prev.expertise,
+                    experience: mentorData.experience || prev.experience,
+                    education: mentorData.education || prev.education
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching mentor profile:', error);
+        }
+    };
+
     const avatars = [
-        // Male Avatars
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Christopher',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Mason',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Aiden',
-        // Female Avatars
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Amelia',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya'
+        // Male Avatars (Happy/Friendly faces)
+        'https://avatar.iran.liara.run/public/boy?username=Kevin',
+        'https://avatar.iran.liara.run/public/boy?username=Brian',
+        'https://avatar.iran.liara.run/public/boy?username=George',
+        'https://avatar.iran.liara.run/public/boy?username=Steven',
+        'https://avatar.iran.liara.run/public/boy?username=Edward',
+        // Female Avatars (Happy/Friendly faces)
+        'https://avatar.iran.liara.run/public/girl?username=Sarah',
+        'https://avatar.iran.liara.run/public/girl?username=Emily',
+        'https://avatar.iran.liara.run/public/girl?username=Anna',
+        'https://avatar.iran.liara.run/public/girl?username=Olivia',
+        'https://avatar.iran.liara.run/public/girl?username=Maria'
     ];
 
     const handleChange = (e) => {
@@ -45,7 +75,10 @@ export default function ProfileContent() {
                 bio: formData.bio,
                 avatar: formData.avatar,
                 expertise: formData.expertise.split(',').map(s => s.trim()),
-                hourlyRate: parseFloat(formData.hourlyRate)
+                hourlyRate: parseFloat(formData.hourlyRate),
+                gender: formData.gender,
+                experience: formData.experience,
+                education: formData.education
             };
 
             const response = await fetch(`${API_URL}/api/auth/profile`, {
@@ -187,6 +220,20 @@ export default function ProfileContent() {
 
                             {user?.role === 'mentor' && (
                                 <>
+                                    <div>
+                                        <label className="block text-white/60 text-sm mb-2">Gender</label>
+                                        <select
+                                            name="gender"
+                                            value={formData.gender}
+                                            onChange={handleChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <option value="male" className="bg-[#0d1b21]">Male</option>
+                                            <option value="female" className="bg-[#0d1b21]">Female</option>
+                                            <option value="other" className="bg-[#0d1b21]">Other</option>
+                                        </select>
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-white/60 text-sm mb-2">Hourly Rate ($)</label>
@@ -196,6 +243,18 @@ export default function ProfileContent() {
                                                 value={formData.hourlyRate}
                                                 onChange={handleChange}
                                                 disabled={!isEditing}
+                                                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-white/60 text-sm mb-2">Experience</label>
+                                            <input
+                                                type="text"
+                                                name="experience"
+                                                value={formData.experience}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                placeholder="e.g. 5 years"
                                                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                             />
                                         </div>
@@ -210,6 +269,93 @@ export default function ProfileContent() {
                                             disabled={!isEditing}
                                             className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
+                                    </div>
+
+                                    {/* Education Section */}
+                                    <div className="border-t border-white/10 pt-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="text-white font-bold">Education</h4>
+                                            {isEditing && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({
+                                                        ...prev,
+                                                        education: [...prev.education, { degree: '', institution: '', year: '' }]
+                                                    }))}
+                                                    className="text-sm text-primary hover:text-primary/80"
+                                                >
+                                                    + Add Education
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-4">
+                                            {formData.education.map((edu, index) => (
+                                                <div key={index} className="bg-white/5 p-4 rounded-lg border border-white/10 relative">
+                                                    {isEditing && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFormData(prev => ({
+                                                                ...prev,
+                                                                education: prev.education.filter((_, i) => i !== index)
+                                                            }))}
+                                                            className="absolute top-2 right-2 text-red-400 hover:text-red-300"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm">close</span>
+                                                        </button>
+                                                    )}
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div>
+                                                            <label className="block text-white/60 text-xs mb-1">Degree</label>
+                                                            <input
+                                                                type="text"
+                                                                value={edu.degree}
+                                                                onChange={(e) => {
+                                                                    const newEducation = [...formData.education];
+                                                                    newEducation[index].degree = e.target.value;
+                                                                    setFormData({ ...formData, education: newEducation });
+                                                                }}
+                                                                disabled={!isEditing}
+                                                                placeholder="e.g. B.Tech"
+                                                                className="w-full px-3 py-2 rounded bg-[#0d1b21] border border-white/10 text-white text-sm focus:outline-none focus:border-primary disabled:opacity-50"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-white/60 text-xs mb-1">Institution</label>
+                                                            <input
+                                                                type="text"
+                                                                value={edu.institution}
+                                                                onChange={(e) => {
+                                                                    const newEducation = [...formData.education];
+                                                                    newEducation[index].institution = e.target.value;
+                                                                    setFormData({ ...formData, education: newEducation });
+                                                                }}
+                                                                disabled={!isEditing}
+                                                                placeholder="University Name"
+                                                                className="w-full px-3 py-2 rounded bg-[#0d1b21] border border-white/10 text-white text-sm focus:outline-none focus:border-primary disabled:opacity-50"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-white/60 text-xs mb-1">Year</label>
+                                                            <input
+                                                                type="text"
+                                                                value={edu.year}
+                                                                onChange={(e) => {
+                                                                    const newEducation = [...formData.education];
+                                                                    newEducation[index].year = e.target.value;
+                                                                    setFormData({ ...formData, education: newEducation });
+                                                                }}
+                                                                disabled={!isEditing}
+                                                                placeholder="e.g. 2023"
+                                                                className="w-full px-3 py-2 rounded bg-[#0d1b21] border border-white/10 text-white text-sm focus:outline-none focus:border-primary disabled:opacity-50"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {formData.education.length === 0 && (
+                                                <p className="text-white/40 text-sm italic text-center py-4">No education details added</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </>
                             )}

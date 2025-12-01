@@ -12,10 +12,18 @@ export default function MentorProfile() {
   const [error, setError] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     fetchMentor();
   }, [id]);
+
+  useEffect(() => {
+    if (activeTab === 'reviews' && mentor?.userId?._id) {
+      fetchReviews();
+    }
+  }, [activeTab, mentor]);
 
   const fetchMentor = async () => {
     try {
@@ -31,6 +39,22 @@ export default function MentorProfile() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const response = await fetch(`${API_URL}/api/feedback/mentor/${mentor.userId._id}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setReviews(data.feedback || []);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -66,14 +90,11 @@ export default function MentorProfile() {
                       style={{
                         backgroundImage: mentor.profileImage
                           ? `url('${mentor.profileImage}')`
-                          : "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBnOAdsLSH4enB0YvQmOtsNC4w88omV8HRnBoWT0C_16Oj5GJakkNUbGQKhRJvM5WRp1aiaD5efzG8GQhbgURsvedEjxc92f4OoMnuoVVK908SG8WajN-Dod7aVxifvJebeGW3ONuaODHR1zWlGGI4evGN-uPyiIahEaXtFliDscgtGEqAnul7Lg4IrZl_FF7CZG4p1K7gGxZrYZAzTO77S9UciqXuaGDLQlbx8rNARPFjZ427MmmqZyP82cif6WkBHMfzaB2u2SwjD')",
+                          : mentor.gender === 'female'
+                            ? `url('https://avatar.iran.liara.run/public/girl?username=${mentor.userId?.name || 'User'}')`
+                            : `url('https://avatar.iran.liara.run/public/boy?username=${mentor.userId?.name || 'User'}')`,
                       }}
                     >
-                      {!mentor.profileImage && !mentor.userId?.name && (
-                        <div className="w-full h-full flex items-center justify-center bg-primary/20 text-4xl font-bold text-white">
-                          M
-                        </div>
-                      )}
                     </div>
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">
@@ -83,13 +104,14 @@ export default function MentorProfile() {
                         {mentor.experience || 'Experienced Professional'}
                       </p>
                       <p className="text-white/60 text-base font-normal leading-normal">
-                        ${mentor.hourlyRate}/hr
+                        ${mentor.hourlyRate !== undefined ? mentor.hourlyRate : 0}/hr
                       </p>
+                      {/* Debug info if needed, or just ensure gender defaults to something reasonable */}
                     </div>
                     {user?.role === 'student' && (
                       <button
                         onClick={() => setShowBookingModal(true)}
-                        className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-primary hover:bg-primary/90 text-background-dark text-sm font-bold leading-normal tracking-[0.015em] w-full transition-colors"
+                        className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white text-base font-bold leading-normal tracking-[0.015em] w-full transition-all shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
                       >
                         <span className="truncate">Request a Session</span>
                       </button>
@@ -134,24 +156,30 @@ export default function MentorProfile() {
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl shadow-sm">
                   {/* Tabs Component */}
                   <div>
-                    <div className="flex border-b border-white/10 px-4">
+                    <div className="flex border-b border-white/10">
                       <button
                         onClick={() => setActiveTab('about')}
-                        className={`flex flex - col items - center justify - center border - b - [3px] pb - [13px] pt - 4 flex - 1 transition - colors ${activeTab === 'about'
-                            ? 'border-b-primary text-white'
-                            : 'border-b-transparent text-white/60 hover:text-white'
-                          } `}
+                        className={`flex-1 py-4 text-center relative transition-colors ${activeTab === 'about'
+                          ? 'text-white'
+                          : 'text-white/40 hover:text-white/60'
+                          }`}
                       >
-                        <p className="text-sm font-bold leading-normal tracking-[0.015em]">About</p>
+                        <p className="text-sm font-bold tracking-wide uppercase">About</p>
+                        {activeTab === 'about' && (
+                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-blue-600"></div>
+                        )}
                       </button>
                       <button
                         onClick={() => setActiveTab('reviews')}
-                        className={`flex flex - col items - center justify - center border - b - [3px] pb - [13px] pt - 4 flex - 1 transition - colors ${activeTab === 'reviews'
-                            ? 'border-b-primary text-white'
-                            : 'border-b-transparent text-white/60 hover:text-white'
-                          } `}
+                        className={`flex-1 py-4 text-center relative transition-colors ${activeTab === 'reviews'
+                          ? 'text-white'
+                          : 'text-white/40 hover:text-white/60'
+                          }`}
                       >
-                        <p className="text-sm font-bold leading-normal tracking-[0.015em]">Reviews</p>
+                        <p className="text-sm font-bold tracking-wide uppercase">Reviews</p>
+                        {activeTab === 'reviews' && (
+                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-blue-600"></div>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -160,11 +188,11 @@ export default function MentorProfile() {
                     {activeTab === 'about' && (
                       <section className="space-y-6">
                         <div>
-                          <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-3">
+                          <h2 className="text-white text-2xl font-bold leading-tight tracking-tight mb-4">
                             About Me
                           </h2>
-                          <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
-                            {mentor.bio || 'No bio available.'}
+                          <p className="text-white/80 leading-7 text-base whitespace-pre-wrap font-light break-words">
+                            {mentor.bio && mentor.bio.trim() !== '' ? mentor.bio : 'No bio available for this mentor.'}
                           </p>
                         </div>
 
@@ -173,13 +201,19 @@ export default function MentorProfile() {
                             <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">
                               Education
                             </h2>
-                            <div className="relative border-l-2 border-white/10 space-y-8 pl-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {mentor.education.map((edu, idx) => (
-                                <div key={idx} className="relative">
-                                  <div className="absolute -left-[35px] top-1.5 h-4 w-4 rounded-full bg-primary ring-8 ring-[#111e22]"></div>
-                                  <p className="font-bold text-white">{edu.degree}</p>
-                                  <p className="text-sm text-primary font-medium">{edu.institution}</p>
-                                  <p className="text-sm text-white/60 mt-1">{edu.year}</p>
+                                <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                                  <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                                      <span className="material-symbols-outlined text-xl">school</span>
+                                    </div>
+                                    <div>
+                                      <p className="font-bold text-white text-lg">{edu.degree}</p>
+                                      <p className="text-white/60 font-medium">{edu.institution}</p>
+                                      <p className="text-sm text-primary mt-1 font-mono">{edu.year}</p>
+                                    </div>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -188,10 +222,61 @@ export default function MentorProfile() {
                       </section>
                     )}
 
-                    {/* Reviews Section Placeholder */}
+                    {/* Reviews Section */}
                     {activeTab === 'reviews' && (
-                      <div className="text-center py-8">
-                        <p className="text-white/60">Reviews coming soon...</p>
+                      <div className="space-y-6">
+                        <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">
+                          Student Reviews
+                        </h2>
+
+                        {reviewsLoading ? (
+                          <div className="flex justify-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          </div>
+                        ) : reviews.length > 0 ? (
+                          <div className="grid gap-4">
+                            {reviews.map((review) => (
+                              <div key={review._id} className="p-6 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="size-10 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20">
+                                      {review.studentId?.name?.[0] || 'S'}
+                                    </div>
+                                    <div>
+                                      <p className="text-white font-semibold">{review.studentId?.name || 'Student'}</p>
+                                      <p className="text-white/40 text-xs">{new Date(review.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex text-yellow-400 bg-black/20 px-2 py-1 rounded-lg">
+                                    {[...Array(5)].map((_, i) => (
+                                      <span key={i} className={`material-symbols-outlined text-sm ${i < review.rating ? 'fill-current' : 'text-gray-700'}`}>
+                                        star
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <p className="text-white/80 leading-relaxed italic break-words">"{review.comment}"</p>
+
+                                {/* Categories Display */}
+                                {review.categories && (
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    {Object.entries(review.categories).map(([key, value]) => (
+                                      <div key={key} className="px-2 py-1 rounded bg-white/5 text-xs text-white/60 capitalize flex items-center gap-1">
+                                        <span>{key}:</span>
+                                        <span className="text-primary font-bold">{value}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
+                            <span className="material-symbols-outlined text-white/40 text-6xl mb-4">rate_review</span>
+                            <p className="text-white/60">No reviews yet.</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

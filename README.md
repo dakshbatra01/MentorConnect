@@ -1,55 +1,59 @@
-# MentorConnect — Frontend
+# MentorConnect
 
-This repo contains the frontend for MentorConnect built with Vite + React + Tailwind.
+## 1. Project Title
+**MentorConnect** – A Student–Mentor Matching and Learning Platform
 
-## What's included
-- Login and Signup pages wired to an Axios service
-- TailwindCSS setup
-- Axios instance that reads `VITE_API_URL` for the backend
+## 2. Problem Statement
+Finding the right mentor in academia or skill development can be challenging. Students often struggle to connect with professionals or peers who can guide them effectively. MentorConnect aims to bridge this gap by creating a digital platform that connects students with mentors based on interests, expertise, and learning goals. The system promotes structured mentorship through verified profiles, scheduling, and feedback.
 
-## Local development
-1. Install dependencies
+## 3. System Architecture
+**Frontend**  **Backend (API)**  **Database**
 
-```bash
-# macOS / zsh
-npm install
-```
+**Architecture Stack:**
+*   **Frontend:** React.js with React Router for multiple pages (Home, Dashboard, Mentor List, Profile)
+*   **Backend:** Node.js + Express.js REST API
+*   **Database:** MongoDB Atlas (non-relational)
+*   **Authentication:** JWT-based secure login/signup for both students and mentors
+*   **Hosting:**
+    *   Frontend  Vercel / Netlify
+    *   Backend  Render / Railway
+    *   Database  MongoDB Atlas
 
-2. Start dev server
+## 4. Key Features
 
-```bash
-npm run dev
-```
+| Category | Features |
+| :--- | :--- |
+| **Authentication & Authorization** | Secure JWT login/signup for students and mentors; role-based access control. |
+| **CRUD Operations** | Create, Read, Update, Delete mentor profiles, requests, and feedback. |
+| **Filtering & Searching** | Filter mentors by domain, experience level, and location; search by skill or name. |
+| **Sorting & Pagination** | Sort mentors by rating or experience; paginate mentor listings. |
+| **Booking System** | Students can request mentorship sessions; mentors approve or reject requests. |
+| **Feedback System** | Students can leave feedback after mentorship sessions. |
+| **Frontend Routing** | Home, Login, Dashboard, Mentor Directory, Profile, Feedback pages. |
+| **Hosting** | Frontend & Backend deployed with public URLs. |
 
-The app will open on http://localhost:5173 by default.
+## 5. Tech Stack
 
-## Environment
-Create a `.env` file (or set env vars in your host) with:
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React.js, React Router, Axios, TailwindCSS |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB (Mongoose ORM) |
+| **Authentication** | JWT Authentication |
+| **Hosting** | Vercel (Frontend), Render/Railway (Backend), MongoDB Atlas (Database) |
 
-```
-VITE_API_URL=http://localhost:4000
-```
+## 6. API Overview
 
-This URL should point to your running backend (the Express API). The frontend expects the following endpoints:
-- POST /api/auth/signup -> returns { token, user }
-- POST /api/auth/login -> returns { token, user }
+| Endpoint | Method | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `/api/auth/signup` | POST | Register new user (mentor/student) | Public |
+| `/api/auth/login` | POST | Authenticate user and return token | Public |
+| `/api/mentors` | GET | Retrieve mentors with filtering, sorting, pagination | Authenticated |
+| `/api/mentors/:id` | GET | Retrieve a single mentor profile | Authenticated |
+| `/api/requests` | POST | Create mentorship session request | Authenticated |
+| `/api/feedback/:id` | PATCH | Submit feedback for a session | Authenticated |
+| `/api/admin/mentors/:id` | DELETE | Remove mentor profile (admin only) | Admin |
 
-Adjust the endpoints if your backend uses different paths.
+---
 
-## Deployment (Frontend)
-You can deploy the frontend to Vercel or Netlify.
-
-- Vercel: connect the repo, set the `VITE_API_URL` environment variable in the project settings, and deploy.
-- Netlify: same idea — set the `VITE_API_URL` env var and deploy the build folder.
-
-Build command: `npm run build`
-Publish folder: `dist`
-
-## Backend & Database hosting
-I recommend deploying the backend to Render or Railway and use MongoDB Atlas for the database. Make sure the backend exposes the `/api/auth/*` endpoints and returns JSON with `token`.
-
-## Next steps
-- Implement mentor directory pages and protected routes
-- Add client-side validation and better error handling
-- Add unit tests and E2E tests for auth flows
-
+**Hosted Frontend URL:** https://mentor-connect-azure.vercel.app

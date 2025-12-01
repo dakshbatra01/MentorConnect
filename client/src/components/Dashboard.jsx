@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import NotificationBell from './NotificationBell';
+
 
 export default function Dashboard() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -80,12 +81,7 @@ export default function Dashboard() {
           </nav>
         </div>
         <div className="mt-auto space-y-2">
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-background-dark text-sm font-bold leading-normal tracking-[0.015em] transition-all"
-          >
-            <span className="truncate">Edit Profile</span>
-          </button>
+
           <button
             onClick={handleLogout}
             className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 text-sm font-medium leading-normal tracking-[0.015em] transition-all"
@@ -100,24 +96,43 @@ export default function Dashboard() {
         {/* TopNavBar */}
         <header className="flex items-center justify-between sticky top-0 z-10 bg-background-dark/80 backdrop-blur-sm whitespace-nowrap border-b border-white/10 px-10 py-3">
           <div className="flex items-center gap-8">
-            <label className="flex flex-col min-w-80 !h-10">
-              <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                <div className="text-white/60 flex bg-white/5 items-center justify-center pl-4 rounded-l-lg border border-r-0 border-white/10">
-                  <span className="material-symbols-outlined">search</span>
-                </div>
-                <input
-                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary border border-l-0 border-white/10 bg-white/5 h-full placeholder:text-white/40 px-4 rounded-l-none pl-2 text-base font-normal leading-normal"
-                  placeholder="Search for mentors..."
-                />
-              </div>
-            </label>
+            {/* Search bar removed */}
           </div>
           <div className="flex items-center gap-4">
-            <NotificationBell />
-            <div
-              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-              style={{ backgroundImage: `url('${user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU"}')` }}
-            ></div>
+
+            <div className="relative">
+              <div
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                style={{ backgroundImage: `url('${user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuA00Iyy-fK9Yp-eHv5UplskAePPc_-C4wytVDu0LJhkBRf_o8cZCE8wme2OUJTN0UYliyxe_wXVFAyziCwlfXiKyiSEtZPTyS-dI6UE4Q7y_e4yE73lIRg90mRC3NDU7DyjjWOd0zl17mRR3HPezG_NyMDDUunyBLXDPtK2fco3DVKMCgBlY7-gTyhr4_-E3BSKZ_Qr6umcEmntwqToI4L7OLpRxxEifWedoL4xQZj5DmfmZOV5XkGZtNzx0ALv-bp_54m_IJhIT9gU"}')` }}
+              ></div>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-[#1a2c32] border border-white/10 rounded-xl shadow-xl py-2 z-50">
+                  <button
+                    onClick={() => {
+                      navigate('/profile');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-white/80 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">person</span>
+                    View Profile
+                  </button>
+                  <div className="border-t border-white/5 my-1"></div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">logout</span>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main className="p-10">

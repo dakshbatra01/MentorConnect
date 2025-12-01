@@ -63,7 +63,7 @@ export default function MentorManagement() {
 
     const handleFeatureToggle = async (mentorId) => {
         try {
-            const response = await fetch(`${API_URL} / api / admin / mentors / ${mentorId} / feature`, {
+            const response = await fetch(`${API_URL}/api/admin/mentors/${mentorId}/feature`, {
                 method: 'PUT',
                 headers: { 'auth-token': token }
             });
@@ -79,7 +79,7 @@ export default function MentorManagement() {
 
     const handleSuspendToggle = async (mentorId) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/admin/mentors/${mentorId}/suspend`, {
+            const response = await fetch(`${API_URL}/api/admin/mentors/${mentorId}/suspend`, {
                 method: 'PUT',
                 headers: { 'auth-token': token }
             });

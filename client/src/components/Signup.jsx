@@ -9,7 +9,8 @@ export default function Signup() {
     role: 'student',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    domain: ''
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +76,7 @@ export default function Signup() {
       }
 
       console.log('All my validations passed, calling my signup API');
-      const result = await signup(formData.name, formData.email, formData.password, formData.role);
+      const result = await signup(formData.name, formData.email, formData.password, formData.role, formData.domain);
 
       if (!result.success) {
         console.log('My signup failed:', result.error);
@@ -169,6 +170,23 @@ export default function Signup() {
                   </select>
                 </label>
               </div>
+              {formData.role === 'mentor' && (
+                <div className="flex flex-col">
+                  <label className="flex flex-col min-w-40 flex-1">
+                    <p className="text-slate-800 dark:text-white text-base font-medium leading-normal pb-2">Major Domain</p>
+                    <input
+                      type="text"
+                      name="domain"
+                      id="domain"
+                      value={formData.domain}
+                      onChange={handleInputChange}
+                      className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-800 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-[#325a67] bg-white dark:bg-[#192d33] focus:border-primary dark:focus:border-primary h-14 placeholder:text-slate-400 dark:placeholder:text-[#92bbc9] p-[15px] text-base font-normal leading-normal"
+                      placeholder="e.g. Software Engineering, Data Science"
+                      required
+                    />
+                  </label>
+                </div>
+              )}
               <div className="flex flex-col">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-slate-800 dark:text-white text-base font-medium leading-normal pb-2">Email Address</p>
@@ -211,20 +229,20 @@ export default function Signup() {
                       {/* My password strength indicators for better user experience */}
                       <div className="flex flex-wrap gap-1 sm:gap-2">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${formData.password.length >= 8
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {formData.password.length >= 8 ? '✓' : '✗'} 8+ chars
                         </span>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${/\d/.test(formData.password)
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {/\d/.test(formData.password) ? '✓' : '✗'} Number
                         </span>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '✗'} Special
                         </span>

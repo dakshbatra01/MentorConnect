@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import API_URL from '../../config';
 import StatsCard from './StatsCard';
 
 export default function AdminDashboard() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -65,9 +67,49 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             {/* Page Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                <p className="text-[#92bbc9]">Welcome to your admin control center</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name || 'Admin'}</h1>
+                <p className="text-[#92bbc9]">Here's what's happening on MentorConnect today.</p>
             </div>
+
+            {/* Needs Attention Section */}
+            {(stats?.sessions?.pending > 0 || stats?.feedback?.flagged > 0) && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-yellow-500">warning</span>
+                        Needs Attention
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {stats?.sessions?.pending > 0 && (
+                            <div className="flex items-center justify-between bg-white/5 p-4 rounded-lg border border-white/10">
+                                <div>
+                                    <p className="text-white font-medium">{stats.sessions.pending} Pending Sessions</p>
+                                    <p className="text-sm text-[#92bbc9]">Waiting for approval</p>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/admin/sessions?status=pending')}
+                                    className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    Review
+                                </button>
+                            </div>
+                        )}
+                        {stats?.feedback?.flagged > 0 && (
+                            <div className="flex items-center justify-between bg-white/5 p-4 rounded-lg border border-white/10">
+                                <div>
+                                    <p className="text-white font-medium">{stats.feedback.flagged} Flagged Reviews</p>
+                                    <p className="text-sm text-[#92bbc9]">Requires moderation</p>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/admin/feedback')}
+                                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    Moderate
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -125,18 +167,21 @@ export default function AdminDashboard() {
                 <div className="bg-[#0d1b21] rounded-xl border border-[#325a67] p-6">
                     <h3 className="text-lg font-bold text-white mb-4">User Growth (Last 7 Days)</h3>
                     <div className="space-y-2">
-                        {stats?.growthData?.map((day) => (
-                            <div key={day.date} className="flex items-center justify-between">
-                                <span className="text-sm text-[#92bbc9]">{day.date}</span>
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className="h-2 bg-primary rounded-full"
-                                        style={{ width: `${Math.max(day.users * 20, 10)}px` }}
-                                    ></div>
-                                    <span className="text-sm text-white font-medium">{day.users}</span>
+                        {(() => {
+                            const maxUsers = stats?.growthData?.reduce((max, day) => Math.max(max, day.users), 0) || 1;
+                            return stats?.growthData?.map((day) => (
+                                <div key={day.date} className="flex items-center justify-between gap-4">
+                                    <span className="text-sm text-[#92bbc9] w-24">{day.date}</span>
+                                    <div className="flex-1 h-2 bg-[#192d33] rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-primary rounded-full transition-all duration-500"
+                                            style={{ width: `${(day.users / maxUsers) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className="text-sm text-white font-medium w-8 text-right">{day.users}</span>
                                 </div>
-                            </div>
-                        ))}
+                            ));
+                        })()}
                     </div>
                 </div>
 
@@ -144,25 +189,34 @@ export default function AdminDashboard() {
                 <div className="bg-[#0d1b21] rounded-xl border border-[#325a67] p-6">
                     <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
                     <div className="space-y-3">
-                        <button className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left">
+                        <button
+                            onClick={() => navigate('/admin/users')}
+                            className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left"
+                        >
                             <span className="material-symbols-outlined text-primary">person_add</span>
                             <div>
                                 <p className="text-white font-medium">Manage Users</p>
                                 <p className="text-xs text-[#92bbc9]">View and manage all users</p>
                             </div>
                         </button>
-                        <button className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left">
+                        <button
+                            onClick={() => navigate('/admin/sessions')}
+                            className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left"
+                        >
                             <span className="material-symbols-outlined text-primary">event</span>
                             <div>
                                 <p className="text-white font-medium">View Sessions</p>
                                 <p className="text-xs text-[#92bbc9]">Monitor all mentoring sessions</p>
                             </div>
                         </button>
-                        <button className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left">
-                            <span className="material-symbols-outlined text-primary">analytics</span>
+                        <button
+                            onClick={() => navigate('/admin/mentors')}
+                            className="w-full flex items-center gap-3 p-3 bg-[#192d33] hover:bg-[#1f3942] rounded-lg transition-colors text-left"
+                        >
+                            <span className="material-symbols-outlined text-primary">school</span>
                             <div>
-                                <p className="text-white font-medium">View Analytics</p>
-                                <p className="text-xs text-[#92bbc9]">Detailed platform insights</p>
+                                <p className="text-white font-medium">Manage Mentors</p>
+                                <p className="text-xs text-[#92bbc9]">Approve and verify mentors</p>
                             </div>
                         </button>
                     </div>

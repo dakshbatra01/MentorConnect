@@ -84,12 +84,8 @@ export default function AdminLayout() {
                 <header className="h-16 bg-[#0d1b21] border-b border-[#325a67] flex items-center justify-between px-6">
                     <h1 className="text-xl font-bold">Admin Dashboard</h1>
                     <div className="flex items-center gap-4">
-                        <button className="p-2 hover:bg-[#192d33] rounded-lg transition-colors">
-                            <span className="material-symbols-outlined">notifications</span>
-                        </button>
-                        <button className="p-2 hover:bg-[#192d33] rounded-lg transition-colors">
-                            <span className="material-symbols-outlined">settings</span>
-                        </button>
+
+
                     </div>
                 </header>
 

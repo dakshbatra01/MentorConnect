@@ -72,7 +72,7 @@ router.get("/users/stats", adminAuth, async (req, res) => {
         const newUsersThisMonth = await User.countDocuments({ createdAt: { $gte: startOfMonth } });
 
         // Get recent users
-        const recentUsers = await User.find()
+        const recentUsers = await User.find({ role: 'student' })
             .select('-password')
             .sort({ createdAt: -1 })
             .limit(5);
@@ -316,9 +316,11 @@ router.get("/analytics/overview", adminAuth, async (req, res) => {
         const totalSessions = await Session.countDocuments();
         const activeSessions = await Session.countDocuments({ status: 'confirmed' });
         const completedSessions = await Session.countDocuments({ status: 'completed' });
+        const pendingSessions = await Session.countDocuments({ status: 'pending' });
 
         // Feedback stats
         const totalFeedback = await Feedback.countDocuments();
+        const flaggedFeedback = await Feedback.countDocuments({ isFlagged: true });
         const avgRatingResult = await Feedback.aggregate([
             { $group: { _id: null, avgRating: { $avg: "$rating" } } }
         ]);
@@ -347,8 +349,8 @@ router.get("/analytics/overview", adminAuth, async (req, res) => {
 
         res.json({
             users: { total: totalUsers, students: totalStudents, mentors: totalMentors },
-            sessions: { total: totalSessions, active: activeSessions, completed: completedSessions },
-            feedback: { total: totalFeedback, platformRating },
+            sessions: { total: totalSessions, active: activeSessions, completed: completedSessions, pending: pendingSessions },
+            feedback: { total: totalFeedback, platformRating, flagged: flaggedFeedback },
             growthData: last7Days
         });
     } catch (error) {

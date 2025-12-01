@@ -21,7 +21,8 @@ export default function SessionsContent() {
             setLoading(true);
             // In a real app, we might want to filter by status on the backend
             // For now, we'll fetch all and filter on client or assume the endpoint returns all relevant
-            const response = await fetch(`${API_URL}/api/session/user/all`, {
+            // Fetch sessions with a high limit to handle client-side filtering for now
+            const response = await fetch(`${API_URL}/api/session/my-sessions?limit=100&sortBy=date&order=desc`, {
                 headers: {
                     'auth-token': token
                 }
@@ -42,7 +43,7 @@ export default function SessionsContent() {
 
     const handleStatusUpdate = async (sessionId, newStatus) => {
         try {
-            const response = await fetch(`${API_URL}/api/session/update-status/${sessionId}`, {
+            const response = await fetch(`${API_URL}/api/session/${sessionId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,10 +65,16 @@ export default function SessionsContent() {
     };
 
     const filteredSessions = sessions.filter(session => {
+        const now = new Date();
+        const sessionDate = new Date(session.date);
+        const isPast = sessionDate < now.setHours(0, 0, 0, 0);
+
         if (activeTab === 'upcoming') {
-            return ['pending', 'confirmed'].includes(session.status);
+            // Show pending, and confirmed sessions that are NOT past
+            return session.status === 'pending' || (session.status === 'confirmed' && !isPast);
         }
-        return ['completed', 'cancelled'].includes(session.status);
+        // Show completed, cancelled, and confirmed sessions that ARE past
+        return ['completed', 'cancelled'].includes(session.status) || (session.status === 'confirmed' && isPast);
     });
 
     const getStatusColor = (status) => {
@@ -190,11 +197,20 @@ export default function SessionsContent() {
                                         </button>
                                     )}
 
-                                    {session.status === 'completed' && user.role === 'student' && !session.feedback && (
+                                    {/* Show Leave Feedback for Completed OR Past Confirmed sessions */}
+                                    {((session.status === 'completed' && !session.feedback) || (session.status === 'confirmed' && new Date(session.date) < new Date().setHours(0, 0, 0, 0))) && user.role === 'student' && (
                                         <button
-                                            onClick={() => {
-                                                setSelectedSession(session);
-                                                setShowFeedbackModal(true);
+                                            onClick={async () => {
+                                                if (session.status === 'confirmed') {
+                                                    // Mark as completed first
+                                                    await handleStatusUpdate(session._id, 'completed');
+                                                    // Then open modal with updated status
+                                                    setSelectedSession({ ...session, status: 'completed' });
+                                                    setShowFeedbackModal(true);
+                                                } else {
+                                                    setSelectedSession(session);
+                                                    setShowFeedbackModal(true);
+                                                }
                                             }}
                                             className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors"
                                         >

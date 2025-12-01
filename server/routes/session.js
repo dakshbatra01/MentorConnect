@@ -5,6 +5,36 @@ const Mentor = require("../models/Mentor");
 const Notification = require("../models/Notification");
 const fetchuser = require("../middleware/fetchuser");
 
+// Get booked slots for a mentor on a specific date
+router.get("/mentor/:mentorId/booked-slots", fetchuser, async (req, res) => {
+  try {
+    const { date } = req.query;
+    const { mentorId } = req.params;
+
+    if (!date) {
+      return res.status(400).json({ error: "Date is required" });
+    }
+
+    // Create start and end of the day for the query
+    const queryDate = new Date(date);
+    const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+    const sessions = await Session.find({
+      mentorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      status: { $ne: 'cancelled' }
+    }).select('startTime endTime');
+
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Book a session
 router.post("/book", fetchuser, async (req, res) => {
   try {
@@ -15,6 +45,40 @@ router.post("/book", fetchuser, async (req, res) => {
     const mentorProfile = await Mentor.findOne({ userId: mentorId });
     if (!mentorProfile) {
       return res.status(404).json({ error: "Mentor not found" });
+    }
+
+    // Check for double booking
+    const queryDate = new Date(date);
+    const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+    const existingSession = await Session.findOne({
+      mentorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      startTime,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingSession) {
+      return res.status(400).json({ error: "This time slot is already booked." });
+    }
+
+    // Check for student double booking
+    const existingStudentSession = await Session.findOne({
+      studentId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      startTime,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingStudentSession) {
+      return res.status(400).json({ error: "You already have a session booked at this time." });
     }
 
     // Create session
@@ -234,8 +298,12 @@ router.delete("/:id", fetchuser, async (req, res) => {
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // Verify user is part of the session
-    if (session.studentId.toString() !== req.user.id &&
+    // Verify user is part of the session or is an admin
+    const user = await require("../models/User").findById(req.user.id);
+    const isAdmin = user && user.role === 'admin';
+
+    if (!isAdmin &&
+      session.studentId.toString() !== req.user.id &&
       session.mentorId.toString() !== req.user.id) {
       return res.status(403).json({ error: "Access denied" });
     }

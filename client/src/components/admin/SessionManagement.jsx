@@ -60,6 +60,26 @@ export default function SessionManagement() {
         }
     };
 
+    const handleCancelSession = async (sessionId) => {
+        try {
+            const response = await fetch(`${API_URL}/api/session/${sessionId}`, {
+                method: 'DELETE',
+                headers: { 'auth-token': token }
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to cancel session');
+            }
+
+            // Refresh list
+            fetchSessions();
+            fetchStats();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
     const getStatusBadge = (status) => {
         const colors = {
             pending: 'bg-yellow-900/30 text-yellow-400 border-yellow-600',
@@ -183,6 +203,19 @@ export default function SessionManagement() {
                                             </div>
                                         </div>
                                     </div>
+                                    {session.status !== 'cancelled' && session.status !== 'completed' && (
+                                        <button
+                                            onClick={() => {
+                                                if (window.confirm('Are you sure you want to cancel this session?')) {
+                                                    handleCancelSession(session._id);
+                                                }
+                                            }}
+                                            className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                            title="Cancel Session"
+                                        >
+                                            <span className="material-symbols-outlined">cancel</span>
+                                        </button>
+                                    )}
                                 </div>
                                 {session.notes && (
                                     <div className="mt-4 p-3 bg-[#192d33] rounded-lg">

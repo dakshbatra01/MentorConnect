@@ -102,18 +102,23 @@ export default function AdvancedAnalytics() {
                 {/* User Growth Chart (Visualized as Bars) */}
                 <div className="bg-[#0d1b21] rounded-xl border border-[#325a67] p-6">
                     <h3 className="text-lg font-bold text-white mb-6">User Growth Trend (Last 7 Days)</h3>
-                    <div className="h-64 flex items-end justify-between gap-2">
+                    <div className="h-64 flex items-end justify-between gap-2 border-b border-[#325a67] pb-2">
                         {stats.overview.growthData.map((day) => {
                             const maxUsers = Math.max(...stats.overview.growthData.map(d => d.users), 1);
                             const height = (day.users / maxUsers) * 100;
                             return (
-                                <div key={day.date} className="flex-1 flex flex-col items-center gap-2 group">
-                                    <div className="relative w-full bg-primary/20 rounded-t-lg hover:bg-primary/40 transition-colors" style={{ height: `${Math.max(height, 5)}%` }}>
-                                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                            {day.users} users
+                                <div key={day.date} className="flex-1 h-full flex flex-col items-center gap-2 group">
+                                    <div className="flex-1 w-full flex items-end justify-center relative">
+                                        <div
+                                            className="w-full max-w-[40px] bg-primary rounded-t-lg hover:bg-primary/80 transition-all duration-500 relative"
+                                            style={{ height: `${Math.max(height, 5)}%` }}
+                                        >
+                                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                                {day.users} users
+                                            </div>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] text-[#92bbc9] rotate-45 origin-left mt-2">{new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                    <span className="text-[10px] text-[#92bbc9] truncate w-full text-center">{new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                                 </div>
                             );
                         })}

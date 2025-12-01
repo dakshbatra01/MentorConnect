@@ -17,14 +17,20 @@ router.get("/all", async (req, res) => {
       sortBy = 'rating',
       order = 'desc',
       page = 1,
-      limit = 12
+      limit = 12,
+      isFeatured
     } = req.query;
 
     let query = { isActive: true };
 
-    // Filter by expertise/domain
+    if (isFeatured === 'true') {
+      query.isFeatured = true;
+    }
+
+    // Filter by expertise/domain (Multi-select)
     if (expertise) {
-      query.expertise = { $in: [expertise] };
+      const expertiseList = expertise.split(',').map(e => e.trim());
+      query.expertise = { $in: expertiseList };
     }
 
     // Filter by rating range
@@ -101,6 +107,16 @@ router.get("/all", async (req, res) => {
   }
 });
 
+// Get all distinct expertise/domains
+router.get("/domains", async (req, res) => {
+  try {
+    const domains = await Mentor.distinct("expertise");
+    res.json(domains);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get mentor by ID
 router.get("/:id", async (req, res) => {
   try {
@@ -137,7 +153,8 @@ router.post("/profile", fetchuser, async (req, res) => {
       education,
       certifications,
       profileImage,
-      socialLinks
+      socialLinks,
+      gender
     } = req.body;
 
     let mentor = await Mentor.findOne({ userId });
@@ -154,6 +171,7 @@ router.post("/profile", fetchuser, async (req, res) => {
       mentor.certifications = certifications || mentor.certifications;
       mentor.profileImage = profileImage || mentor.profileImage;
       mentor.socialLinks = socialLinks || mentor.socialLinks;
+      mentor.gender = gender || mentor.gender;
 
       await mentor.save();
     } else {
@@ -169,7 +187,8 @@ router.post("/profile", fetchuser, async (req, res) => {
         education: education || [],
         certifications: certifications || [],
         profileImage: profileImage || '',
-        socialLinks: socialLinks || {}
+        socialLinks: socialLinks || {},
+        gender: gender || 'male'
       });
     }
 
@@ -286,5 +305,7 @@ router.get("/stats/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 module.exports = router;

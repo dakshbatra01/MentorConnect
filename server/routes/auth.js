@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Mentor = require("../models/Mentor");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -36,7 +37,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, domain } = req.body;
     const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
@@ -46,6 +47,20 @@ router.post(
         password: hashedPassword,
         role: role || 'student'
       });
+
+      // If role is mentor and domain is provided, create Mentor profile
+      if (role === 'mentor' && domain) {
+        const Mentor = require("../models/Mentor");
+        await Mentor.create({
+          userId: user._id,
+          expertise: [domain],
+          bio: `Experienced professional in ${domain}.`,
+          hourlyRate: 0,
+          experience: '0 years',
+          rating: 0,
+          totalSessions: 0
+        });
+      }
       const data = {
         user: {
           id: user._id,
@@ -163,6 +178,25 @@ router.put("/profile", fetchuser, async (req, res) => {
     if (hourlyRate) user.hourlyRate = hourlyRate;
 
     await user.save();
+
+    // If user is a mentor, also update the Mentor profile
+    if (user.role === 'mentor') {
+      const { experience, gender, education } = req.body;
+      const mentorUpdate = {};
+      if (bio) mentorUpdate.bio = bio;
+      if (expertise) mentorUpdate.expertise = expertise;
+      if (hourlyRate) mentorUpdate.hourlyRate = hourlyRate;
+      if (experience) mentorUpdate.experience = experience;
+      if (avatar) mentorUpdate.profileImage = avatar;
+      if (gender) mentorUpdate.gender = gender;
+      if (education) mentorUpdate.education = education;
+
+      await Mentor.findOneAndUpdate(
+        { userId: userId },
+        { $set: mentorUpdate },
+        { new: true }
+      );
+    }
 
     // Return updated user without password
     const updatedUser = await User.findById(userId).select("-password");
