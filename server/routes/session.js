@@ -152,8 +152,8 @@ router.get("/my-sessions", fetchuser, async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const sessions = await Session.find(query)
-      .populate('studentId', 'name email')
-      .populate('mentorId', 'name email')
+      .populate('studentId', 'name email avatar')
+      .populate('mentorId', 'name email avatar')
       .sort(sortOptions)
       .limit(parseInt(limit))
       .skip(skip);

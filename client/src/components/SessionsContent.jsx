@@ -138,10 +138,15 @@ export default function SessionsContent() {
                         <div key={session._id} className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="size-16 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
-                                        {user.role === 'student'
-                                            ? (session.mentorId?.name?.[0] || 'M')
-                                            : (session.studentId?.name?.[0] || 'S')}
+                                    <div
+                                        className="size-16 rounded-full bg-cover bg-center border border-white/10"
+                                        style={{
+                                            backgroundImage: `url('${user.role === 'student'
+                                                    ? (session.mentorId?.avatar || `https://avatar.iran.liara.run/public?username=${session.mentorId?.name || 'Mentor'}`)
+                                                    : (session.studentId?.avatar || `https://avatar.iran.liara.run/public?username=${session.studentId?.name || 'Student'}`)
+                                                }')`
+                                        }}
+                                    >
                                     </div>
                                     <div>
                                         <h3 className="text-white font-bold text-lg">{session.topic}</h3>
@@ -159,64 +164,84 @@ export default function SessionsContent() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 w-full md:w-auto">
-                                    {session.status === 'pending' && user.role === 'mentor' && (
-                                        <>
+                                <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                                    {session.status === 'completed' && session.rating && (
+                                        <div className="p-3 rounded-lg bg-white/5 border border-white/10 max-w-[250px]">
+                                            <div className="flex items-center gap-2 mb-1 justify-end">
+                                                <span className="text-white font-medium text-sm">Rated {session.rating}/5</span>
+                                                <div className="flex">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <span key={i} className={`material-symbols-outlined text-sm ${i < session.rating ? 'text-yellow-400' : 'text-white/20'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                                            star
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {session.feedback && (
+                                                <p className="text-white/60 text-sm italic text-right">"{session.feedback}"</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                                        {session.status === 'pending' && user.role === 'mentor' && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleStatusUpdate(session._id, 'confirmed')}
+                                                    className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors"
+                                                >
+                                                    Accept
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusUpdate(session._id, 'cancelled')}
+                                                    className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-white/5 text-white font-medium hover:bg-white/10 transition-colors border border-white/10"
+                                                >
+                                                    Decline
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {session.status === 'confirmed' && (
+                                            <a
+                                                href={session.meetingLink || '#'}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors text-center"
+                                            >
+                                                Join Meeting
+                                            </a>
+                                        )}
+
+                                        {session.status === 'confirmed' && user.role === 'mentor' && (
                                             <button
-                                                onClick={() => handleStatusUpdate(session._id, 'confirmed')}
+                                                onClick={() => handleStatusUpdate(session._id, 'completed')}
+                                                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 font-medium hover:bg-green-500/30 transition-colors"
+                                            >
+                                                Mark Complete
+                                            </button>
+                                        )}
+
+                                        {/* Show Leave Feedback for Completed OR Past Confirmed sessions */}
+                                        {((session.status === 'completed' && !session.feedback) || (session.status === 'confirmed' && new Date(session.date) < new Date().setHours(0, 0, 0, 0))) && user.role === 'student' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (session.status === 'confirmed') {
+                                                        // Mark as completed first
+                                                        await handleStatusUpdate(session._id, 'completed');
+                                                        // Then open modal with updated status
+                                                        setSelectedSession({ ...session, status: 'completed' });
+                                                        setShowFeedbackModal(true);
+                                                    } else {
+                                                        setSelectedSession(session);
+                                                        setShowFeedbackModal(true);
+                                                    }
+                                                }}
                                                 className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors"
                                             >
-                                                Accept
+                                                Leave Feedback
                                             </button>
-                                            <button
-                                                onClick={() => handleStatusUpdate(session._id, 'cancelled')}
-                                                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-white/5 text-white font-medium hover:bg-white/10 transition-colors border border-white/10"
-                                            >
-                                                Decline
-                                            </button>
-                                        </>
-                                    )}
-
-                                    {session.status === 'confirmed' && (
-                                        <a
-                                            href={session.meetingLink || '#'}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors text-center"
-                                        >
-                                            Join Meeting
-                                        </a>
-                                    )}
-
-                                    {session.status === 'confirmed' && user.role === 'mentor' && (
-                                        <button
-                                            onClick={() => handleStatusUpdate(session._id, 'completed')}
-                                            className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 font-medium hover:bg-green-500/30 transition-colors"
-                                        >
-                                            Mark Complete
-                                        </button>
-                                    )}
-
-                                    {/* Show Leave Feedback for Completed OR Past Confirmed sessions */}
-                                    {((session.status === 'completed' && !session.feedback) || (session.status === 'confirmed' && new Date(session.date) < new Date().setHours(0, 0, 0, 0))) && user.role === 'student' && (
-                                        <button
-                                            onClick={async () => {
-                                                if (session.status === 'confirmed') {
-                                                    // Mark as completed first
-                                                    await handleStatusUpdate(session._id, 'completed');
-                                                    // Then open modal with updated status
-                                                    setSelectedSession({ ...session, status: 'completed' });
-                                                    setShowFeedbackModal(true);
-                                                } else {
-                                                    setSelectedSession(session);
-                                                    setShowFeedbackModal(true);
-                                                }
-                                            }}
-                                            className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-primary text-background-dark font-medium hover:bg-primary/90 transition-colors"
-                                        >
-                                            Leave Feedback
-                                        </button>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
