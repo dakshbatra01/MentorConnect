@@ -48,11 +48,24 @@ Finding the right mentor in academia or skill development can be challenging. St
 | :--- | :--- | :--- | :--- |
 | `/api/auth/signup` | POST | Register new user (mentor/student) | Public |
 | `/api/auth/login` | POST | Authenticate user and return token | Public |
-| `/api/mentors` | GET | Retrieve mentors with filtering, sorting, pagination | Authenticated |
-| `/api/mentors/:id` | GET | Retrieve a single mentor profile | Authenticated |
-| `/api/requests` | POST | Create mentorship session request | Authenticated |
-| `/api/feedback/:id` | PATCH | Submit feedback for a session | Authenticated |
-| `/api/admin/mentors/:id` | DELETE | Remove mentor profile (admin only) | Admin |
+| `/api/session/book` | POST | Book a new mentorship session | Authenticated |
+| `/api/feedback/create` | POST | Submit feedback for a completed session | Authenticated |
+| `/api/mentor/profile` | POST | Create a new mentor profile | Authenticated |
+| `/api/mentor/all` | GET | Retrieve mentors with filtering, sorting, pagination | Authenticated |
+| `/api/session/my-sessions` | GET | Get the logged-in user's sessions | Authenticated |
+| `/api/admin/analytics/overview` | GET | Get admin dashboard statistics | Admin |
+| `/api/auth/getuser` | GET | Get the current logged-in user's details | Authenticated |
+| `/api/feedback/mentor/:mentorId` | GET | Get all reviews for a specific mentor | Authenticated |
+| `/api/auth/profile` | PUT | Update user profile details | Authenticated |
+| `/api/session/:id/status` | PUT | Update session status (e.g., confirm, complete) | Authenticated |
+| `/api/mentor/availability` | PUT | Update mentor's available time slots | Authenticated |
+| `/api/admin/users/:id/role` | PUT | Change a user's role | Admin |
+| `/api/notifications/:id/read` | PUT | Mark a notification as read | Authenticated |
+| `/api/session/:id` | DELETE | Cancel/Delete a session | Authenticated |
+| `/api/feedback/:id` | DELETE | Delete a specific feedback entry | Authenticated |
+| `/api/admin/users/:id` | DELETE | Delete a user account | Admin |
+| `/api/mentor/profile` | DELETE | Delete the logged-in user's mentor profile | Authenticated |
+| `/api/admin/feedback/:id` | DELETE | Delete any feedback | Admin |
 
 ---
 
