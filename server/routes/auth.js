@@ -6,8 +6,8 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 // My secret keys for JWT token generation
-const SecretKey = "ChotiGold$Arc";
-const RefreshSecretKey = "ChotiGold$Arc$Refresh";
+const SecretKey = process.env.JWT_SECRET || "ChotiGold$Arc";
+const RefreshSecretKey = process.env.REFRESH_SECRET || "ChotiGold$Arc$Refresh";
 const fetchuser = require("../middleware/fetchuser");
 
 // My signup route with comprehensive validation

@@ -6,13 +6,7 @@ const Mentor = require("../models/Mentor");
 const Session = require("../models/Session");
 const Feedback = require("../models/Feedback");
 
-// ============================================
-// USER MANAGEMENT ROUTES
-// ============================================
 
-// @route   GET /api/admin/users
-// @desc    Get all users with pagination and filters
-// @access  Admin
 router.get("/users", adminAuth, async (req, res) => {
     try {
         const { page = 1, limit = 20, role, search, sortBy = 'createdAt', order = 'desc' } = req.query;
@@ -190,9 +184,6 @@ router.delete("/users/:id", adminAuth, async (req, res) => {
     }
 });
 
-// ============================================
-// SESSION MANAGEMENT ROUTES
-// ============================================
 
 // @route   GET /api/admin/sessions
 // @desc    Get all sessions with filters
@@ -298,9 +289,6 @@ router.put("/sessions/:id/cancel", adminAuth, async (req, res) => {
     }
 });
 
-// ============================================
-// ANALYTICS ROUTES
-// ============================================
 
 // @route   GET /api/admin/analytics/overview
 // @desc    Get dashboard overview statistics
@@ -359,9 +347,7 @@ router.get("/analytics/overview", adminAuth, async (req, res) => {
     }
 });
 
-// ============================================
-// MENTOR MANAGEMENT ROUTES
-// ============================================
+
 
 // @route   GET /api/admin/mentors
 // @desc    Get all mentors with filters

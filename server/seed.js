@@ -178,7 +178,7 @@ const seedData = async () => {
     ]);
     console.log('Created mentor profiles');
 
-    console.log('\n✅ Seed data created successfully!');
+    console.log('\n Seed data created successfully!');
     console.log('\nTest Credentials:');
     console.log('==================');
     console.log('\nStudent Account:');

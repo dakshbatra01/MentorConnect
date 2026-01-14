@@ -15,6 +15,7 @@ const connectDB = async () => {
         autoIndex: false, // Disable automatic index creation in production
       };
 
+      console.log("Attempting to connect to MongoDB. URI is " + (process.env.MONGODB_URI ? "defined" : "undefined"));
       await mongoose.connect(process.env.MONGODB_URI, options);
       console.log("MongoDB connected successfully");
 
