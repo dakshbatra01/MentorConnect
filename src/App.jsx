@@ -77,7 +77,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/mentors" element={<Mentors />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile setGlobalUser={setUser} />} />
         </Routes>
       </main>
 

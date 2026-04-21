@@ -22,7 +22,6 @@ export async function signup(data) {
   }
   return d
 }
-
 export function logout() {
   // I attempt server-side logout to clear the refresh cookie
   try { api.post('/api/auth/logout') } catch (e) {}

@@ -1,5 +1,9 @@
 const path = require('path')
 require('dotenv').config({ path: path.join(__dirname, '.env') })
+const bufferModule = require('buffer')
+if (typeof bufferModule.SlowBuffer === 'undefined') {
+  bufferModule.SlowBuffer = bufferModule.Buffer
+}
 const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
@@ -55,6 +59,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   role: { type: String, default: 'student' },
   email: { type: String, unique: true },
+  avatarUrl: { type: String, default: '' },
   password: String,
 }, { 
   timestamps: true,
@@ -115,9 +120,38 @@ function generateRefreshToken(user) {
   return jwt.sign({ id: user._id || user.id }, REFRESH_SECRET, { expiresIn: '7d' })
 }
 
+function buildUserResponse(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl || '',
+  }
+}
+
+function normalizeAvatarUrl(input) {
+  const value = String(input || '').trim()
+  if (!value) return ''
+  if (value.length > 2048) return null
+  try {
+    const parsed = new URL(value)
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
+function getAccessTokenFromRequest(req) {
+  const auth = req.headers['authorization'] || ''
+  const m = auth.match(/^Bearer (.+)$/)
+  return m ? m[1] : (req.cookies && req.cookies.accessToken)
+}
+
 // I create a user, hash the password, and return tokens
 app.post('/api/auth/signup', async (req, res) => {
-  const { name, role = 'student', email, password } = req.body || {}
+  const { name, role = 'student', email, password, avatarUrl } = req.body || {}
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'name, email and password are required' })
   }
@@ -131,10 +165,14 @@ app.post('/api/auth/signup', async (req, res) => {
   if (!pwdRegex.test(password)) {
     return res.status(400).json({ message: 'Password must be at least 8 characters long and include at least one number and one special character' })
   }
+  const normalizedAvatarUrl = normalizeAvatarUrl(avatarUrl)
+  if (normalizedAvatarUrl === null) {
+    return res.status(400).json({ message: 'Invalid avatarUrl. Provide a valid http/https URL.' })
+  }
   const exists = await User.findOne({ email }).exec()
   if (exists) return res.status(409).json({ message: 'User already exists' })
   const hashed = await bcrypt.hash(password, 10)
-  const user = new User({ name, role, email, password: hashed })
+  const user = new User({ name, role, email, avatarUrl: normalizedAvatarUrl || '', password: hashed })
   await user.save()
 
   const accessToken = generateAccessToken(user)
@@ -160,7 +198,7 @@ app.post('/api/auth/signup', async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
 
-  return res.json({ accessToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } })
+  return res.json({ accessToken, user: buildUserResponse(user) })
 })
 
 // I accept email/password and return tokens
@@ -194,7 +232,7 @@ app.post('/api/auth/login', async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
 
-  return res.json({ accessToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } })
+  return res.json({ accessToken, user: buildUserResponse(user) })
 })
 
 // I refresh the access token using the refresh token cookie
@@ -275,15 +313,36 @@ app.post('/api/auth/logout', async (req, res) => {
 // I expose a protected route that uses the access token
 app.get('/api/auth/me', async (req, res) => {
   // I accept an access token from the Authorization header or from a cookie
-  const auth = req.headers['authorization'] || ''
-  const m = auth.match(/^Bearer (.+)$/)
-  const token = m ? m[1] : (req.cookies && req.cookies.accessToken)
+  const token = getAccessTokenFromRequest(req)
   if (!token) return res.status(401).json({ message: 'Missing token' })
   try {
     const payload = jwt.verify(token, JWT_SECRET)
     const user = await User.findById(payload.id).exec()
     if (!user) return res.status(404).json({ message: 'User not found' })
-    return res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } })
+    return res.json({ user: buildUserResponse(user) })
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' })
+  }
+})
+
+// I update avatar URL for the authenticated user
+app.put('/api/auth/me/avatar', async (req, res) => {
+  const token = getAccessTokenFromRequest(req)
+  if (!token) return res.status(401).json({ message: 'Missing token' })
+
+  const normalizedAvatarUrl = normalizeAvatarUrl(req.body && req.body.avatarUrl)
+  if (normalizedAvatarUrl === null) {
+    return res.status(400).json({ message: 'Invalid avatarUrl. Provide a valid http/https URL.' })
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET)
+    const user = await User.findById(payload.id).exec()
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    user.avatarUrl = normalizedAvatarUrl || ''
+    await user.save()
+    return res.json({ user: buildUserResponse(user) })
   } catch (err) {
     return res.status(401).json({ message: 'Invalid token' })
   }

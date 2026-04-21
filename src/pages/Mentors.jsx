@@ -1,4 +1,5 @@
 import React from 'react'
+import { getAvatarUrl } from '../utils/avatar'
 
 export default function Mentors() {
   const mentors = [
@@ -84,7 +85,12 @@ export default function Mentors() {
               <div key={mentor.id} className={`mentor-card-wrapper fade-in-up delay-${index % 3}`}>
                 <div className="mentor-card">
                   <div className="mentor-header">
-                    <div className="mentor-avatar">{mentor.name.charAt(0)}</div>
+                    <img
+                      src={getAvatarUrl(mentor.name, mentor.avatarUrl)}
+                      alt={mentor.name}
+                      className="mentor-avatar"
+                      loading="lazy"
+                    />
                     <div className="mentor-info">
                       <h3 className="mentor-name">{mentor.name}</h3>
                       <p className="mentor-skill">{mentor.skill}</p>

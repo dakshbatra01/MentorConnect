@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../services/auth'
+import { getAvatarUrl, getInitial } from '../utils/avatar'
 
 export default function Navbar({ user, setUser, theme, toggleTheme }) {
   const navigate = useNavigate()
@@ -37,7 +38,14 @@ export default function Navbar({ user, setUser, theme, toggleTheme }) {
             </div>
           ) : (
             <div className="profile-area">
-              <Link to="/profile" className="profile-link">{user.name || user.email}</Link>
+              <Link to="/profile" className="profile-link">
+                <img
+                  src={getAvatarUrl(user.name || user.email, user.avatarUrl || user.avatar)}
+                  alt={user.name || 'User avatar'}
+                  className="avatar"
+                />
+                <span>{user.name || user.email || getInitial(user.email)}</span>
+              </Link>
               <button className="btn-ghost" onClick={handleLogout}>Logout</button>
             </div>
           )}

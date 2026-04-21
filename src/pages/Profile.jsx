@@ -1,17 +1,43 @@
 import React, { useEffect, useState } from 'react'
 import api from '../services/api'
+import { getAvatarUrl } from '../utils/avatar'
 
-export default function Profile() {
+export default function Profile({ setGlobalUser }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [avatarInput, setAvatarInput] = useState('')
+  const [avatarError, setAvatarError] = useState('')
+  const [savingAvatar, setSavingAvatar] = useState(false)
 
   useEffect(() => {
     let mounted = true
     api.get('/api/auth/me').then(r => {
-      if (mounted) setUser(r.data.user)
+      if (mounted) {
+        setUser(r.data.user)
+        setAvatarInput(r.data.user?.avatarUrl || '')
+      }
     }).catch(() => {}).finally(() => { if (mounted) setLoading(false) })
     return () => { mounted = false }
   }, [])
+
+  async function handleSaveAvatar(e) {
+    e.preventDefault()
+    setAvatarError('')
+    try {
+      setSavingAvatar(true)
+      const res = await api.put('/api/auth/me/avatar', { avatarUrl: avatarInput.trim() })
+      const updatedUser = res?.data?.user
+      if (!updatedUser) throw new Error('Could not update avatar')
+
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      if (setGlobalUser) setGlobalUser(updatedUser)
+    } catch (err) {
+      setAvatarError(err?.response?.data?.message || err?.message || 'Failed to update avatar')
+    } finally {
+      setSavingAvatar(false)
+    }
+  }
 
   if (loading) return (
     <div className="profile-page">
@@ -43,13 +69,33 @@ export default function Profile() {
         <section className="profile-header-section fade-in">
           <div className="profile-header-card card">
             <div className="profile-header-content">
-              <div className="avatar-large">{(user.name || user.email).charAt(0).toUpperCase()}</div>
+              <img
+                src={getAvatarUrl(user.name || user.email, user.avatarUrl || user.avatar)}
+                alt={user.name || 'Profile avatar'}
+                className="avatar-large"
+              />
               <div className="profile-info">
                 <h1 className="profile-name">{user.name}</h1>
                 <p className="profile-email">{user.email}</p>
                 <div className="role-badge">{user.role}</div>
               </div>
             </div>
+            <form className="avatar-form" onSubmit={handleSaveAvatar}>
+              <label className="form-label">Avatar Image URL</label>
+              <div className="avatar-form-row">
+                <input
+                  type="url"
+                  value={avatarInput}
+                  onChange={e => setAvatarInput(e.target.value)}
+                  className="form-input"
+                  placeholder="https://example.com/avatar.jpg"
+                />
+                <button type="submit" className="btn-primary" disabled={savingAvatar}>
+                  {savingAvatar ? 'Saving...' : 'Save Avatar'}
+                </button>
+              </div>
+              {avatarError && <p className="avatar-error">{avatarError}</p>}
+            </form>
           </div>
         </section>
 
