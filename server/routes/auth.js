@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Mentor = require("../models/Mentor");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 // My secret keys for JWT token generation
-const SecretKey = "ChotiGold$Arc";
-const RefreshSecretKey = "ChotiGold$Arc$Refresh";
+const SecretKey = process.env.JWT_SECRET || "ChotiGold$Arc";
+const RefreshSecretKey = process.env.REFRESH_SECRET || "ChotiGold$Arc$Refresh";
 const fetchuser = require("../middleware/fetchuser");
 
 // My signup route with comprehensive validation
@@ -36,16 +37,30 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, domain } = req.body;
     const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
-      const user = await User.create({ 
-        name, 
-        email: email.toLowerCase(), 
+      const user = await User.create({
+        name,
+        email: email.toLowerCase(),
         password: hashedPassword,
-        role: role || 'student' 
+        role: role || 'student'
       });
+
+      // If role is mentor and domain is provided, create Mentor profile
+      if (role === 'mentor' && domain) {
+        const Mentor = require("../models/Mentor");
+        await Mentor.create({
+          userId: user._id,
+          expertise: [domain],
+          bio: `Experienced professional in ${domain}.`,
+          hourlyRate: 0,
+          experience: '0 years',
+          rating: 0,
+          totalSessions: 0
+        });
+      }
       const data = {
         user: {
           id: user._id,
@@ -54,15 +69,15 @@ router.post(
           role: user.role,
         },
       };
-      
+
       // Generate access token (expires in 15 minutes)
       let authToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-      
+
       // Generate refresh token (expires in 7 days)
       let refreshToken = jwt.sign({ userId: user._id }, RefreshSecretKey, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        authToken, 
+
+      res.status(201).json({
+        authToken,
         refreshToken,
         user: {
           id: user._id,
@@ -121,15 +136,15 @@ router.post(
           role: user.role,
         },
       };
-      
+
       // Generate access token (expires in 15 minutes)
       let authToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-      
+
       // Generate refresh token (expires in 7 days)
       let refreshToken = jwt.sign({ userId: user._id }, RefreshSecretKey, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        authToken, 
+
+      res.status(201).json({
+        authToken,
         refreshToken,
         user: {
           id: user._id,
@@ -143,6 +158,54 @@ router.post(
     }
   }
 );
+
+// Update Profile Route
+router.put("/profile", fetchuser, async (req, res) => {
+  try {
+    const { name, bio, avatar, expertise, hourlyRate } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+    if (avatar) user.avatar = avatar;
+    if (expertise) user.expertise = expertise;
+    if (hourlyRate) user.hourlyRate = hourlyRate;
+
+    await user.save();
+
+    // If user is a mentor, also update the Mentor profile
+    if (user.role === 'mentor') {
+      const { experience, gender, education } = req.body;
+      const mentorUpdate = {};
+      if (bio) mentorUpdate.bio = bio;
+      if (expertise) mentorUpdate.expertise = expertise;
+      if (hourlyRate) mentorUpdate.hourlyRate = hourlyRate;
+      if (experience) mentorUpdate.experience = experience;
+      if (avatar) mentorUpdate.profileImage = avatar;
+      if (gender) mentorUpdate.gender = gender;
+      if (education) mentorUpdate.education = education;
+
+      await Mentor.findOneAndUpdate(
+        { userId: userId },
+        { $set: mentorUpdate },
+        { new: true }
+      );
+    }
+
+    // Return updated user without password
+    const updatedUser = await User.findById(userId).select("-password");
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 router.post("/getuser", fetchuser, async (req, res) => {
   try {
@@ -158,7 +221,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
 router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
-    
+
     if (!refreshToken) {
       return res.status(401).json({ error: "Refresh token required" });
     }
@@ -182,9 +245,9 @@ router.post("/refresh-token", async (req, res) => {
         role: user.role,
       },
     };
-    
+
     const newAuthToken = jwt.sign(data, SecretKey, { expiresIn: '15m' });
-    
+
     res.json({ authToken: newAuthToken });
   } catch (error) {
     res.status(401).json({ error: "Invalid refresh token" });

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API_URL from '../config';
 
 const AuthContext = createContext();
 
@@ -17,9 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [refreshToken, setRefreshToken] = useState(null);
   const [initialized, setInitialized] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL 
-    ? `${import.meta.env.VITE_API_URL}/api/auth` 
-    : 'http://localhost:4000/api/auth';
+  const API_BASE_URL = `${API_URL}/api/auth`;
 
   // My auto refresh token system when access token expires
   const refreshAccessToken = async () => {
@@ -113,13 +112,13 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       setRefreshToken(refreshTokenData);
       setLoading(false);
-      
+
       // I store tokens in localStorage for persistence
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('refreshToken', refreshTokenData);
-      
+
       console.log('My login successful, user state set to:', userData);
-      
+
       return { success: true };
     } catch (error) {
       console.error('My login error:', error);
@@ -129,12 +128,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // My signup function to register new users
-  const signup = async (name, email, password, role = 'student') => {
+  const signup = async (name, email, password, role = 'student', domain = '') => {
     try {
       // I don't set loading to true here to prevent form reset on error
       const data = await apiCall('/signup', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, domain }),
       });
 
       const authToken = data.authToken;
@@ -146,7 +145,7 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       setRefreshToken(refreshTokenData);
       setLoading(false);
-      
+
       // I store tokens in localStorage for session persistence
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('refreshToken', refreshTokenData);
@@ -213,9 +212,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
     const storedRefreshToken = localStorage.getItem('refreshToken');
-    
+
     console.log('I am initializing from localStorage - token:', !!storedToken, 'refreshToken:', !!storedRefreshToken);
-    
+
     if (storedToken && storedRefreshToken) {
       setToken(storedToken);
       setRefreshToken(storedRefreshToken);
@@ -226,18 +225,27 @@ export const AuthProvider = ({ children }) => {
   // I restore session when tokens are initialized
   useEffect(() => {
     if (!initialized) return;
-    
+
     console.log('My session restoration check - token:', !!token, 'refreshToken:', !!refreshToken, 'user:', !!user);
-    
+
     if (token && refreshToken && !user) {
       console.log('I am restoring session...');
       fetchUser();
-    } else if (initialized && !token) {
-      console.log('I have no tokens available, not loading');
+    } else {
+      // If we are initialized and not restoring a session, we should stop loading.
+      // This covers:
+      // 1. No tokens (guest)
+      // 2. User already loaded
+      // 3. Partial/Corrupt tokens (we should probably logout in this case, but for now just stopping loading allows the UI to render)
+
+      if ((token && !refreshToken) || (!token && refreshToken)) {
+        console.log('Partial tokens detected, clearing session');
+        logout();
+      }
+
       setLoading(false);
     }
-    // I don't set loading to false if I have tokens but am still processing user data
-  }, [initialized, token, refreshToken]);
+  }, [initialized, token, refreshToken, user]);
 
   const value = {
     user,

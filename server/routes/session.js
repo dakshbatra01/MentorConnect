@@ -1,0 +1,391 @@
+const express = require("express");
+const router = express.Router();
+const Session = require("../models/Session");
+const Mentor = require("../models/Mentor");
+const Notification = require("../models/Notification");
+const fetchuser = require("../middleware/fetchuser");
+
+// Get booked slots for a mentor on a specific date
+router.get("/mentor/:mentorId/booked-slots", fetchuser, async (req, res) => {
+  try {
+    const { date } = req.query;
+    const { mentorId } = req.params;
+
+    if (!date) {
+      return res.status(400).json({ error: "Date is required" });
+    }
+
+    // Create start and end of the day for the query
+    const queryDate = new Date(date);
+    const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+    const sessions = await Session.find({
+      mentorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      status: { $ne: 'cancelled' }
+    }).select('startTime endTime');
+
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Book a session
+router.post("/book", fetchuser, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { mentorId, date, startTime, endTime, topic, notes } = req.body;
+
+    // Verify mentor exists
+    const mentorProfile = await Mentor.findOne({ userId: mentorId });
+    if (!mentorProfile) {
+      return res.status(404).json({ error: "Mentor not found" });
+    }
+
+    // Check for double booking
+    const queryDate = new Date(date);
+    const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+    const existingSession = await Session.findOne({
+      mentorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      startTime,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingSession) {
+      return res.status(400).json({ error: "This time slot is already booked." });
+    }
+
+    // Check for student double booking
+    const existingStudentSession = await Session.findOne({
+      studentId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      startTime,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingStudentSession) {
+      return res.status(400).json({ error: "You already have a session booked at this time." });
+    }
+
+    // Create session
+    const session = await Session.create({
+      studentId,
+      mentorId,
+      date,
+      startTime,
+      endTime,
+      topic,
+      notes: notes || ''
+    });
+
+    // Notify Mentor
+    await Notification.create({
+      userId: mentorId,
+      type: 'session_booked',
+      message: `New session request from a student for ${topic}`,
+      relatedId: session._id
+    });
+
+    res.status(201).json(session);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all sessions for logged-in user with pagination
+router.get("/my-sessions", fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      status,
+      role,
+      page = 1,
+      limit = 10,
+      sortBy = 'date',
+      order = 'desc'
+    } = req.query;
+
+    let query = {
+      $or: [
+        { studentId: userId },
+        { mentorId: userId }
+      ]
+    };
+
+    // Filter by status
+    if (status) {
+      query.status = status;
+    }
+
+    // Filter by role (as student or mentor)
+    if (role === 'student') {
+      query = { studentId: userId };
+      if (status) query.status = status;
+    } else if (role === 'mentor') {
+      query = { mentorId: userId };
+      if (status) query.status = status;
+    }
+
+    // Sorting
+    let sortOptions = {};
+    if (sortBy === 'date') {
+      sortOptions.date = order === 'asc' ? 1 : -1;
+    } else {
+      sortOptions.createdAt = order === 'asc' ? 1 : -1;
+    }
+
+    // Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const sessions = await Session.find(query)
+      .populate('studentId', 'name email avatar')
+      .populate('mentorId', 'name email avatar')
+      .sort(sortOptions)
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Session.countDocuments(query);
+
+    res.json({
+      sessions,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get session by ID
+router.get("/:id", fetchuser, async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id)
+      .populate('studentId', 'name email')
+      .populate('mentorId', 'name email');
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user is part of the session
+    if (session.studentId._id.toString() !== req.user.id &&
+      session.mentorId._id.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update session status
+router.put("/:id/status", fetchuser, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user is the mentor
+    if (session.mentorId.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Only the mentor can update session status" });
+    }
+
+    session.status = status;
+    await session.save();
+
+    // Update mentor's total sessions if completed
+    if (status === 'completed') {
+      await Mentor.findOneAndUpdate(
+        { userId: session.mentorId },
+        { $inc: { totalSessions: 1 } }
+      );
+
+      // Notify Student to leave review
+      await Notification.create({
+        userId: session.studentId,
+        type: 'review_reminder',
+        message: `Your session on ${session.topic} is completed. Please leave a review!`,
+        relatedId: session._id
+      });
+    } else if (status === 'confirmed') {
+      // Notify Student
+      await Notification.create({
+        userId: session.studentId,
+        type: 'session_confirmed',
+        message: `Your session on ${session.topic} has been confirmed!`,
+        relatedId: session._id
+      });
+    }
+
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add rating and feedback
+router.put("/:id/feedback", fetchuser, async (req, res) => {
+  try {
+    const { rating, feedback } = req.body;
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user is the student
+    if (session.studentId.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Only the student can provide feedback" });
+    }
+
+    // Verify session is completed
+    if (session.status !== 'completed') {
+      return res.status(400).json({ error: "Can only rate completed sessions" });
+    }
+
+    session.rating = rating;
+    session.feedback = feedback || '';
+    await session.save();
+
+    // Update mentor's average rating
+    const mentorSessions = await Session.find({
+      mentorId: session.mentorId,
+      status: 'completed',
+      rating: { $exists: true, $ne: null }
+    });
+
+    const avgRating = mentorSessions.reduce((sum, s) => sum + s.rating, 0) / mentorSessions.length;
+
+    await Mentor.findOneAndUpdate(
+      { userId: session.mentorId },
+      { rating: avgRating }
+    );
+
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancel session
+router.delete("/:id", fetchuser, async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user is part of the session or is an admin
+    const user = await require("../models/User").findById(req.user.id);
+    const isAdmin = user && user.role === 'admin';
+
+    if (!isAdmin &&
+      session.studentId.toString() !== req.user.id &&
+      session.mentorId.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    session.status = 'cancelled';
+    await session.save();
+
+    // Notify the other party
+    const recipientId = req.user.id === session.studentId.toString()
+      ? session.mentorId
+      : session.studentId;
+
+    await Notification.create({
+      userId: recipientId,
+      type: 'session_cancelled',
+      message: `Session on ${session.topic} has been cancelled.`,
+      relatedId: session._id
+    });
+
+    res.json({ message: "Session cancelled successfully", session });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update session details
+router.put("/:id", fetchuser, async (req, res) => {
+  try {
+    const { date, startTime, endTime, topic, notes, meetingLink } = req.body;
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user is the mentor
+    if (session.mentorId.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Only the mentor can update session details" });
+    }
+
+    if (date) session.date = date;
+    if (startTime) session.startTime = startTime;
+    if (endTime) session.endTime = endTime;
+    if (topic) session.topic = topic;
+    if (notes !== undefined) session.notes = notes;
+    if (meetingLink !== undefined) session.meetingLink = meetingLink;
+
+    await session.save();
+
+    const updatedSession = await Session.findById(session._id)
+      .populate('studentId', 'name email')
+      .populate('mentorId', 'name email');
+
+    res.json(updatedSession);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get session statistics for user
+router.get("/stats/me", fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const sessions = await Session.find({
+      $or: [{ studentId: userId }, { mentorId: userId }]
+    });
+
+    const stats = {
+      total: sessions.length,
+      pending: sessions.filter(s => s.status === 'pending').length,
+      confirmed: sessions.filter(s => s.status === 'confirmed').length,
+      completed: sessions.filter(s => s.status === 'completed').length,
+      cancelled: sessions.filter(s => s.status === 'cancelled').length,
+      asStudent: sessions.filter(s => s.studentId.toString() === userId).length,
+      asMentor: sessions.filter(s => s.mentorId.toString() === userId).length
+    };
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
