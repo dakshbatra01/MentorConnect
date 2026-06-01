@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FeedbackModal from './FeedbackModal';
 import API_URL from '../config';
+import { getDefaultAvatar } from '../utils/avatar';
 
 export default function SessionsContent() {
     const { user, token } = useAuth();
@@ -142,8 +143,8 @@ export default function SessionsContent() {
                                         className="size-16 rounded-full bg-cover bg-center border border-white/10"
                                         style={{
                                             backgroundImage: `url('${user.role === 'student'
-                                                    ? (session.mentorId?.avatar || `https://avatar.iran.liara.run/public?username=${session.mentorId?.name || 'Mentor'}`)
-                                                    : (session.studentId?.avatar || `https://avatar.iran.liara.run/public?username=${session.studentId?.name || 'Student'}`)
+                                                    ? (session.mentorId?.avatar || getDefaultAvatar(session.mentorId?.name || 'Mentor'))
+                                                    : (session.studentId?.avatar || getDefaultAvatar(session.studentId?.name || 'Student'))
                                                 }')`
                                         }}
                                     >

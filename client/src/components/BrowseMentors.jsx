@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API_URL from '../config';
+import { getMentorAvatar } from '../utils/avatar';
 
 export default function BrowseMentors() {
   const navigate = useNavigate();
@@ -239,9 +240,7 @@ export default function BrowseMentors() {
                     style={{
                       backgroundImage: mentor.profileImage
                         ? `url('${mentor.profileImage}')`
-                        : mentor.gender === 'female'
-                          ? `url('https://avatar.iran.liara.run/public/girl?username=${mentor.userId?.name || 'User'}')`
-                          : `url('https://avatar.iran.liara.run/public/boy?username=${mentor.userId?.name || 'User'}')`,
+                        : `url('${getMentorAvatar(mentor.userId?.name || 'User', mentor.gender)}')`,
                     }}
                   >
                   </div>

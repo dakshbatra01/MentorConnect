@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_URL from '../config';
+import { getMentorAvatar } from '../utils/avatar';
 
 export default function FeaturedMentorsCarousel() {
     const [mentors, setMentors] = useState([]);
@@ -23,7 +24,8 @@ export default function FeaturedMentorsCarousel() {
 
     const fetchFeaturedMentors = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/mentor/all?isFeatured=true&limit=10`);
+            // Fetch top-rated mentors instead of 'isFeatured=true' since seed data doesn't set isFeatured
+            const response = await fetch(`${API_URL}/api/mentor/all?sortBy=rating&order=desc&limit=10`);
             const data = await response.json();
             setMentors(data.mentors || []);
         } catch (error) {
@@ -41,7 +43,7 @@ export default function FeaturedMentorsCarousel() {
         setCurrentIndex((prevIndex) => (prevIndex - 1 + mentors.length) % mentors.length);
     };
 
-    if (loading) return <div className="text-white/60 text-center py-8">Loading featured mentors...</div>;
+    if (loading) return <div className="text-white/60 text-center py-8">Loading top mentors...</div>;
     if (mentors.length === 0) return null;
 
     // Helper to get position style
@@ -118,7 +120,7 @@ export default function FeaturedMentorsCarousel() {
     return (
         <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-white text-2xl font-bold">Featured Mentors</h2>
+                <h2 className="text-white text-2xl font-bold">Top Mentors</h2>
                 {mentors.length > 3 && (
                     <div className="flex gap-2">
                         <button
@@ -175,14 +177,16 @@ function MentorCard({ mentor, isCenter, navigate }) {
                     {mentor.profileImage ? (
                         <img src={mentor.profileImage} alt={mentor.userId.name} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white font-bold text-2xl">
-                            {mentor.userId.name.charAt(0)}
-                        </div>
+                        <img 
+                            src={getMentorAvatar(mentor.userId.name, mentor.gender)} 
+                            alt={mentor.userId.name} 
+                            className="w-full h-full object-cover" 
+                        />
                     )}
                 </div>
                 {isCenter && (
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-background-dark text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                        FEATURED
+                        TOP RATED
                     </div>
                 )}
             </div>

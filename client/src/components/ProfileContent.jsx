@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import API_URL from '../config';
+import { getDefaultAvatar, SELECTABLE_AVATARS } from '../utils/avatar';
 
 export default function ProfileContent() {
     const { user, token } = useAuth();
@@ -47,20 +48,7 @@ export default function ProfileContent() {
         }
     };
 
-    const avatars = [
-        // Male Avatars (Happy/Friendly faces)
-        'https://avatar.iran.liara.run/public/boy?username=Kevin',
-        'https://avatar.iran.liara.run/public/boy?username=Brian',
-        'https://avatar.iran.liara.run/public/boy?username=George',
-        'https://avatar.iran.liara.run/public/boy?username=Steven',
-        'https://avatar.iran.liara.run/public/boy?username=Edward',
-        // Female Avatars (Happy/Friendly faces)
-        'https://avatar.iran.liara.run/public/girl?username=Sarah',
-        'https://avatar.iran.liara.run/public/girl?username=Emily',
-        'https://avatar.iran.liara.run/public/girl?username=Anna',
-        'https://avatar.iran.liara.run/public/girl?username=Olivia',
-        'https://avatar.iran.liara.run/public/girl?username=Maria'
-    ];
+    const avatars = SELECTABLE_AVATARS;
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -122,9 +110,7 @@ export default function ProfileContent() {
                                 {formData.avatar ? (
                                     <img src={formData.avatar} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
-                                        {user?.name?.[0] || 'A'}
-                                    </div>
+                                    <img src={getDefaultAvatar(user?.name)} alt="Profile" className="w-full h-full object-cover" />
                                 )}
                             </div>
                             {isEditing && (

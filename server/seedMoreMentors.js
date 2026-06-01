@@ -40,9 +40,15 @@ const seedMoreMentors = async () => {
         console.log('Generating 20 more mentors...');
 
         for (let i = 0; i < 20; i++) {
-            const firstName = getRandomElement(firstNames);
+            const gender = Math.random() > 0.5 ? 'male' : 'female';
+            
+            // Generate names based on gender
+            const maleFirstNames = ['James', 'Robert', 'John', 'Michael', 'David', 'William', 'Richard', 'Joseph', 'Thomas', 'Charles'];
+            const femaleFirstNames = ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen'];
+            
+            const firstName = gender === 'male' ? getRandomElement(maleFirstNames) : getRandomElement(femaleFirstNames);
             const lastName = getRandomElement(lastNames);
-            const name = `${firstName} ${lastName} ${i}`; // Append index to ensure uniqueness if names repeat
+            const name = `${firstName} ${lastName}`;
             const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`;
 
             const user = new User({
@@ -62,10 +68,11 @@ const seedMoreMentors = async () => {
 
             const mentor = new Mentor({
                 userId: user._id,
+                gender, // add gender here!
                 expertise: mentorExpertise,
                 bio: `Experienced professional in ${mentorExpertise.join(', ')}. Passionate about helping others grow.`,
                 experience: `${getRandomInt(3, 15)} years in industry`,
-                hourlyRate: getRandomInt(50, 200),
+                hourlyRate: getRandomInt(15, 60),
                 rating: getRandomFloat(3.5, 5.0),
                 totalSessions: getRandomInt(0, 50),
                 languages: ['English'],

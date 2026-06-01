@@ -70,3 +70,15 @@ Finding the right mentor in academia or skill development can be challenging. St
 ---
 
 **Hosted Frontend URL:** https://mentor-connect-azure.vercel.app
+
+## 7. Demo Credentials
+
+You can use the following test credentials to explore the platform:
+
+**Student Account:**
+* **Email:** alice@example.com
+* **Password:** Test@123
+
+**Mentor Account:**
+* **Email:** sarah@example.com
+* **Password:** Test@123

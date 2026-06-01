@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getDefaultAvatar } from '../utils/avatar';
 
 
 export default function Dashboard() {
@@ -29,7 +30,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
             <div
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
-              style={{ backgroundImage: `url('${user?.avatar || `https://avatar.iran.liara.run/public?username=${user?.name || 'User'}`}')` }}
+              style={{ backgroundImage: `url('${user?.avatar || getDefaultAvatar(user?.name)}')` }}
             ></div>
             <div className="flex flex-col">
               <h1 className="text-white text-base font-medium leading-normal">{user?.name || 'Alex Chen'}</h1>
@@ -104,7 +105,7 @@ export default function Dashboard() {
               <div
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                style={{ backgroundImage: `url('${user?.avatar || `https://avatar.iran.liara.run/public?username=${user?.name || 'User'}`}')` }}
+                style={{ backgroundImage: `url('${user?.avatar || getDefaultAvatar(user?.name)}')` }}
               ></div>
 
               {showProfileMenu && (
